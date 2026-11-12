@@ -121,6 +121,14 @@ export async function runAction(id: string, action: string, payload: unknown): P
   return result;
 }
 
+export async function loadSettingOptions(id: string, key: string): Promise<{ value: string; label: string }[]> {
+  const tile = (await getLayout()).find((t) => t.id === id);
+  const def = tile && widgets.get(tile.widget);
+  const setting = def?.settings?.find((s) => s.key === key);
+  if (!tile || !def || !setting?.loadOptions) return [];
+  return setting.loadOptions(makeContext(tile, def));
+}
+
 export async function runCommand(widgetId: string, commandId: string, text: string): Promise<string | void> {
   const def = widgets.get(widgetId);
   const cmd = def?.commands?.find((c) => c.id === commandId);

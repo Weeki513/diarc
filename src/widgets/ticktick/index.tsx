@@ -14,9 +14,12 @@ interface Task {
 }
 interface Data {
   tasks: Task[];
+  /** Set when the widget shows one specific list. */
+  list?: { id: string; name: string };
 }
 interface Config {
-  scope: 'today' | 'week' | 'all';
+  /** 'today' | 'week' | 'all' | 'p:<projectId>' (a specific list) */
+  scope: string;
 }
 
 const AUTH = { provider: 'ticktick' as const };
@@ -26,10 +29,12 @@ const PRIORITY_COLOR: Record<number, string> = { 5: '#e5484d', 3: '#f5a524', 1: 
 /** TickTick wants "yyyy-MM-dd'T'HH:mm:ssZ" e.g. 2026-11-13T15:00:00+0000 */
 const ttDate = (d: Date) => d.toISOString().replace(/\.\d{3}Z$/, '+0000');
 
+const selectedList = (c: Config) => (c.scope?.startsWith('p:') ? c.scope.slice(2) : undefined);
+
 async function createTask(ctx: WidgetContext<Config>, text: string, projectId?: string): Promise<string> {
   const p = parseWhen(text);
   const body: Record<string, unknown> = { title: p.title || text, timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone };
-  if (projectId) body.projectId = projectId;
+  if (projectId && projectId !== 'inbox') body.projectId = projectId;
   if (p.start) {
     body.dueDate = ttDate(p.start);
     body.startDate = ttDate(p.start);
@@ -59,12 +64,20 @@ export default defineWidget<Data, Config>({
         { value: 'week', label: 'Ближайшие 7 дней' },
         { value: 'all', label: 'Все незавершённые' },
       ],
+      help: 'Можно выбрать и конкретный список: тогда новые задачи тоже попадут в него',
+      async loadOptions(ctx) {
+        const projects = await ctx.http<{ id: string; name: string; closed?: boolean }[]>(`${API}/project`, { auth: AUTH });
+        return [{ value: 'p:inbox', label: 'Входящие' }, ...projects.filter((p) => !p.closed).map((p) => ({ value: `p:${p.id}`, label: p.name }))];
+      },
     },
   ],
 
   async fetch(ctx) {
     const projects = await ctx.http<{ id: string; name: string; closed?: boolean }[]>(`${API}/project`, { auth: AUTH });
-    const list = [{ id: 'inbox', name: 'Входящие' }, ...projects.filter((p) => !p.closed)].slice(0, 25);
+    const all = [{ id: 'inbox', name: 'Входящие' }, ...projects.filter((p) => !p.closed)];
+    const only = selectedList(ctx.config);
+    const one = only ? all.find((p) => p.id === only) ?? { id: only, name: 'Список' } : undefined;
+    const list = one ? [one] : all.slice(0, 25);
     const results = await Promise.allSettled(
       list.map((p) => ctx.http<{ tasks?: any[] }>(`${API}/project/${p.id}/data`, { auth: AUTH }).then((d) => ({ p, tasks: d?.tasks ?? [] }))),
     );
@@ -76,16 +89,16 @@ export default defineWidget<Data, Config>({
       for (const t of r.value.tasks) {
         if (t.status !== 0) continue;
         const due = t.dueDate ? new Date(t.dueDate.replace(/([+-]\d{2})(\d{2})$/, '$1:$2')) : undefined;
-        if (ctx.config.scope !== 'all' && (!due || due.getTime() >= horizon)) continue;
+        if (!one && ctx.config.scope !== 'all' && (!due || due.getTime() >= horizon)) continue;
         tasks.push({ id: t.id, projectId: t.projectId, projectName: r.value.p.name, title: t.title, due: due?.toISOString(), allDay: t.isAllDay, priority: t.priority ?? 0 });
       }
     }
     tasks.sort((a, b) => (a.due ? new Date(a.due).getTime() : Infinity) - (b.due ? new Date(b.due).getTime() : Infinity) || b.priority - a.priority);
-    return { tasks: tasks.slice(0, 80) };
+    return { tasks: tasks.slice(0, 80), list: one && { id: one.id, name: one.name } };
   },
 
   actions: {
-    create: (ctx, p: { text: string }) => createTask(ctx, p.text),
+    create: (ctx, p: { text: string }) => createTask(ctx, p.text, selectedList(ctx.config)),
     complete: (ctx, p: { id: string; projectId: string }) =>
       ctx.http(`${API}/project/${p.projectId}/task/${p.id}/complete`, { method: 'POST', auth: AUTH, as: 'none' }),
     rename: (ctx, p: { id: string; projectId: string; title: string }) =>
@@ -104,7 +117,7 @@ export default defineWidget<Data, Config>({
   },
 
   commands: [
-    { id: 'create', title: 'Новая задача', prefix: ['t', 'task', 'з', 'задача', 'todo'], hint: 'TickTick · «купить молоко завтра»', run: (ctx, text) => createTask(ctx, text) },
+    { id: 'create', title: 'Новая задача', prefix: ['t', 'task', 'з', 'задача', 'todo'], hint: 'TickTick · «купить молоко завтра»', run: (ctx, text) => createTask(ctx, text, selectedList(ctx.config)) },
   ],
 
   View({ data, size, run, open }) {
@@ -117,12 +130,13 @@ export default defineWidget<Data, Config>({
       hide(t.id);
       run('complete', { id: t.id, projectId: t.projectId }).catch(() => restore(t.id));
     };
-    const openApp = () => open('https://ticktick.com/webapp/#q/all/today');
+    const title = data?.list?.name ?? 'TickTick';
+    const openApp = () => open(data?.list ? `https://ticktick.com/webapp/#p/${data.list.id}/tasks` : 'https://ticktick.com/webapp/#q/all/today');
 
     if (size === 'S') {
       return (
         <div class="k-pad k-clickable" onClick={openApp}>
-          <Header title="TickTick" icon="✅" />
+          <Header title={title} icon="✅" />
           <Big sub={tasks[0]?.title ?? 'Всё сделано'}>{tasks.length}</Big>
         </div>
       );
@@ -142,7 +156,7 @@ export default defineWidget<Data, Config>({
         key={t.id}
         leading={<Check checked={false} color={PRIORITY_COLOR[t.priority]} onChange={() => complete(t)} />}
         title={<EditableText value={t.title} editing={editing === t.id} onCancel={() => setEditing(null)} onSave={(title) => { setEditing(null); if (title && title !== t.title) run('rename', { id: t.id, projectId: t.projectId, title }); }} />}
-        subtitle={size === 'M' ? undefined : t.projectName}
+        subtitle={size === 'M' || data?.list ? undefined : t.projectName}
         meta={t.due ? (t.allDay ? (new Date(t.due) < today ? fmtShort(new Date(t.due), now) : '') : fmtTime(new Date(t.due))) : ''}
         actions={
           size === 'M' ? undefined : (
@@ -158,7 +172,7 @@ export default defineWidget<Data, Config>({
 
     return (
       <div class="k-pad k-col">
-        <Header title="TickTick" icon="✅" onClick={openApp} right={<span class="k-count">{tasks.length || ''}</span>} />
+        <Header title={title} icon="✅" onClick={openApp} right={<span class="k-count">{tasks.length || ''}</span>} />
         <Scroll>
           {tasks.length === 0 && <Empty icon="🎉">Всё сделано</Empty>}
           {size === 'M'

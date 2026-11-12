@@ -88,6 +88,9 @@ extension (`dia://extensions` → ↻). Then open the bar → ▦ → **+** → 
 ### `WidgetSetting`
 `{ key, label, type: 'text' | 'textarea' | 'number' | 'toggle' | 'select', options?: {value,label}[], default?, placeholder?, help? }`
 Values arrive merged with defaults in `ctx.config` and `props.config`.
+For a `select` whose choices depend on the user's account (lists, calendars), add
+`loadOptions: async (ctx) => [{ value, label }]` to the setting: it runs in the service worker when the settings form opens
+(see the `scope` setting of `ticktick`).
 
 ### `ctx` (service worker side)
 ```ts

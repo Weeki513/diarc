@@ -33,6 +33,8 @@ export interface WidgetSetting {
   label: string;
   type: 'text' | 'textarea' | 'number' | 'toggle' | 'select';
   options?: { value: string; label: string }[];
+  /** Extra options loaded in the service worker when the settings form opens (e.g. a user's lists). */
+  loadOptions?: (ctx: WidgetContext<any>) => Promise<{ value: string; label: string }[]>;
   default?: string | number | boolean;
   placeholder?: string;
   help?: string;

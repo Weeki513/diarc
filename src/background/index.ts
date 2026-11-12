@@ -6,7 +6,7 @@ import type { BgRequest, BgResponse } from '../shared/messages';
 import { AuthRequiredError } from '../shared/widget';
 import { K } from '../shared/storage';
 import { disconnect, getToken, status } from './auth';
-import { pruneCache, refreshStale, runAction, runCommand } from './widgets';
+import { loadSettingOptions, pruneCache, refreshStale, runAction, runCommand } from './widgets';
 
 const OVERLAY_WINDOW_KEY = 'overlayWindowId';
 const RESTRICTED = /^(chrome|dia|edge|brave|about|chrome-extension|chrome-search|devtools|view-source|data|blob):|^https:\/\/(chrome\.google\.com\/webstore|chromewebstore\.google\.com)/;
@@ -121,6 +121,8 @@ async function handle(msg: BgRequest): Promise<unknown> {
       return refreshStale(msg.force ? 0 : 60_000, msg.ids, msg.force);
     case 'widget:action':
       return runAction(msg.id, msg.action, msg.payload);
+    case 'widget:options':
+      return loadSettingOptions(msg.id, msg.key);
     case 'widget:command':
       return runCommand(msg.widget, msg.command, msg.text);
     case 'auth:connect':

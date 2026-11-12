@@ -2,6 +2,7 @@
 export type BgRequest =
   | { type: 'widget:refresh'; ids?: string[]; force?: boolean }
   | { type: 'widget:action'; id: string; action: string; payload?: unknown }
+  | { type: 'widget:options'; id: string; key: string }
   | { type: 'widget:command'; widget: string; command: string; text: string }
   | { type: 'auth:connect'; provider: 'google' | 'ticktick'; scopes?: string[] }
   | { type: 'auth:disconnect'; provider: 'google' | 'ticktick' }

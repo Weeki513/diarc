@@ -1,4 +1,4 @@
-import { useState } from 'preact/hooks';
+import { useEffect, useState } from 'preact/hooks';
 import { widgets } from '../widgets/registry';
 import { bg } from '../shared/messages';
 import { saveLayout, type Tile } from '../shared/storage';
@@ -47,6 +47,16 @@ export function TileSettings(props: { layout: Tile[]; id: string; onClose(): voi
   const tile = props.layout.find((t) => t.id === props.id);
   const def = tile && widgets.get(tile.widget);
   const [values, setValues] = useState<Record<string, any>>(() => (def ? { ...defaultConfig(def), ...tile!.config } : {}));
+  const [extra, setExtra] = useState<Record<string, { value: string; label: string }[]>>({});
+  const [loadError, setLoadError] = useState('');
+  useEffect(() => {
+    for (const s of def?.settings ?? []) {
+      if (!s.loadOptions) continue;
+      bg<{ value: string; label: string }[]>({ type: 'widget:options', id: props.id, key: s.key })
+        .then((opts) => setExtra((e) => ({ ...e, [s.key]: opts })))
+        .catch((e) => setLoadError((e as Error).message));
+    }
+  }, [props.id]);
   if (!tile || !def) return null;
   const set = (k: string, v: unknown) => setValues((s) => ({ ...s, [k]: v }));
   const save = async () => {
@@ -65,6 +75,14 @@ export function TileSettings(props: { layout: Tile[]; id: string; onClose(): voi
             ) : s.type === 'select' ? (
               <select value={values[s.key]} onChange={(e) => set(s.key, (e.target as HTMLSelectElement).value)}>
                 {s.options?.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                {extra[s.key]?.length ? (
+                  <optgroup label="Списки">
+                    {extra[s.key].map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                  </optgroup>
+                ) : null}
+                {s.loadOptions && !extra[s.key] && values[s.key] && !s.options?.some((o) => o.value === values[s.key]) && (
+                  <option value={values[s.key]}>…</option>
+                )}
               </select>
             ) : s.type === 'toggle' ? (
               <input type="checkbox" checked={!!values[s.key]} onChange={(e) => set(s.key, (e.target as HTMLInputElement).checked)} />
@@ -79,6 +97,7 @@ export function TileSettings(props: { layout: Tile[]; id: string; onClose(): voi
             {s.help && <small>{s.help}</small>}
           </label>
         ))}
+        {loadError && <small class="tile-err">Не удалось загрузить списки: {loadError}</small>}
         <div class="form-actions">
           <Button onClick={props.onClose}>Отмена</Button>
           <Button primary onClick={save}>Сохранить</Button>
