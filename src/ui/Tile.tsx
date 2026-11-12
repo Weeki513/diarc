@@ -2,7 +2,7 @@ import { Component, type ComponentChildren } from 'preact';
 import { useState } from 'preact/hooks';
 import { widgets } from '../widgets/registry';
 import { bg } from '../shared/messages';
-import type { CacheEntry, Tile } from '../shared/storage';
+import { getLayout, saveLayout, type CacheEntry, type Tile } from '../shared/storage';
 import { SIZE_SPANS, defaultConfig, resolveAuth, type TileSize } from '../shared/widget';
 import { openUrl } from './env';
 import { Button, IconRefresh, IconSettings } from './kit';
@@ -108,6 +108,10 @@ export function TileView(props: {
           updatedAt={entry?.updatedAt}
           run={run}
           refresh={refresh}
+          setConfig={async (patch) => {
+            const layout = await getLayout();
+            await saveLayout(layout.map((t) => (t.id === tile.id ? { ...t, config: { ...t.config, ...patch } } : t)));
+          }}
           open={(url, o) => openUrl(url, o?.newTab ?? true)}
         />
       </Boundary>

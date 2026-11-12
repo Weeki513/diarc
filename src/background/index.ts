@@ -34,25 +34,35 @@ async function toggle(tab?: chrome.tabs.Tab): Promise<void> {
       /* fall through */
     }
   }
-  if (await openActionPopup(tab?.windowId)) return;
+  if (tab?.id !== undefined && (await openInTab(tab))) return;
   await openOverlayWindow(overlayWindowId);
 }
 
+const OVERLAY_URL = () => chrome.runtime.getURL('overlay.html');
+const isNewTab = (url = '') => !url || /^(chrome|dia|edge|brave):\/\/(newtab|new-tab-page)|^about:(blank|newtab)$|^chrome-search:/.test(url);
+
 /**
- * Fallback #1 for pages where nothing can be injected (Dia's new tab, dia://, Web Store, PDF):
- * the extension's toolbar popup. It drops down inside the browser window, closes on blur,
- * and feels much closer to the overlay than a separate window.
+ * Pages nothing can be injected into (Dia's new tab, dia://, Web Store, PDF):
+ * show the bar as a page inside the browser instead of a separate window.
+ * An empty new tab is replaced in place (Esc goes back to it); otherwise a tab opens next to it.
  */
-async function openActionPopup(windowId?: number): Promise<boolean> {
+async function openInTab(tab: chrome.tabs.Tab): Promise<boolean> {
   try {
-    await chrome.action.setPopup({ popup: 'overlay.html?mode=popup' });
-    await chrome.action.openPopup(windowId !== undefined ? { windowId } : undefined);
+    const url = tab.url || tab.pendingUrl || '';
+    if (url.startsWith(OVERLAY_URL())) {
+      // Toggle off: the bar itself is the active tab.
+      if (url.includes('origin=replace')) await chrome.tabs.goBack(tab.id!).catch(() => chrome.tabs.remove(tab.id!));
+      else await chrome.tabs.remove(tab.id!);
+      return true;
+    }
+    if (isNewTab(url)) {
+      await chrome.tabs.update(tab.id!, { url: `overlay.html?mode=tab&origin=replace` });
+    } else {
+      await chrome.tabs.create({ url: `overlay.html?mode=tab&origin=new&from=${tab.id}`, index: tab.index + 1, windowId: tab.windowId });
+    }
     return true;
   } catch {
     return false;
-  } finally {
-    // Keep the icon click as a toggle on normal pages.
-    chrome.action.setPopup({ popup: '' }).catch(() => {});
   }
 }
 
@@ -65,7 +75,7 @@ async function sendToggle(tabId: number): Promise<boolean> {
   }
 }
 
-/** Fallback #2: a small popup window, if the toolbar popup is unavailable. */
+/** Last resort: a small popup window. */
 async function openOverlayWindow(existing?: number): Promise<void> {
   if (existing !== undefined) {
     try {
@@ -149,6 +159,8 @@ chrome.runtime.onInstalled.addListener(async ({ reason }) => {
     tabs.filter((t) => t.id !== undefined && !t.discarded).map((t) => chrome.scripting.executeScript({ target: { tabId: t.id! }, files: ['content.js'] })),
   );
   if (reason === 'install') chrome.runtime.openOptionsPage();
+  // New version may change what widgets fetch: refresh everything once.
+  if (reason === 'update') refreshStale(0, undefined, true).catch(() => {});
 });
 
 chrome.runtime.onStartup.addListener(() => {

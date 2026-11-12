@@ -1,7 +1,7 @@
 import { useState } from 'preact/hooks';
 import { defineWidget, type WidgetContext } from '../../shared/widget';
 import { addDays, fmtDayLabel, fmtShort, fmtTime, parseWhen, startOfDay } from '../../shared/dates';
-import { AddInput, Big, Check, EditableText, Empty, Group, Header, IconButton, IconPencil, IconTrash, Row, Scroll, useOptimistic } from '../../ui/kit';
+import { AddInput, useAddField, Big, Check, EditableText, Empty, Group, Header, IconButton, IconPencil, IconTrash, Row, Scroll, useOptimistic } from '../../ui/kit';
 
 interface Task {
   id: string;
@@ -132,6 +132,8 @@ export default defineWidget<Data, Config>({
     };
     const title = data?.list?.name ?? 'TickTick';
     const openApp = () => open(data?.list ? `https://ticktick.com/webapp/#p/${data.list.id}/tasks` : 'https://ticktick.com/webapp/#q/all/today');
+    const add = useAddField('Новая задача: «отчёт завтра в 10»', (text) => run('create', { text }));
+    const compact = size === 'M';
 
     if (size === 'S') {
       return (
@@ -149,22 +151,20 @@ export default defineWidget<Data, Config>({
       return fmtDayLabel(d, now);
     };
     const groups = new Map<string, Task[]>();
-    for (const t of tasks.slice(0, size === 'M' ? 3 : undefined)) groups.set(label(t), [...(groups.get(label(t)) ?? []), t]);
+    for (const t of tasks) groups.set(label(t), [...(groups.get(label(t)) ?? []), t]);
 
     const row = (t: Task) => (
       <Row
         key={t.id}
         leading={<Check checked={false} color={PRIORITY_COLOR[t.priority]} onChange={() => complete(t)} />}
         title={<EditableText value={t.title} editing={editing === t.id} onCancel={() => setEditing(null)} onSave={(title) => { setEditing(null); if (title && title !== t.title) run('rename', { id: t.id, projectId: t.projectId, title }); }} />}
-        subtitle={size === 'M' || data?.list ? undefined : t.projectName}
+        subtitle={compact || data?.list ? undefined : t.projectName}
         meta={t.due ? (t.allDay ? (new Date(t.due) < today ? fmtShort(new Date(t.due), now) : '') : fmtTime(new Date(t.due))) : ''}
         actions={
-          size === 'M' ? undefined : (
-            <>
-              <IconButton title="Переименовать" onClick={() => setEditing(t.id)}><IconPencil /></IconButton>
-              <IconButton title="Удалить" danger onClick={() => { hide(t.id); run('remove', { id: t.id, projectId: t.projectId }).catch(() => restore(t.id)); }}><IconTrash /></IconButton>
-            </>
-          )
+          <>
+            <IconButton title="Переименовать" onClick={() => setEditing(t.id)}><IconPencil /></IconButton>
+            <IconButton title="Удалить" danger onClick={() => { hide(t.id); run('remove', { id: t.id, projectId: t.projectId }).catch(() => restore(t.id)); }}><IconTrash /></IconButton>
+          </>
         }
         onClick={() => open(`https://ticktick.com/webapp/#p/${t.projectId}/tasks/${t.id}`)}
       />
@@ -172,18 +172,19 @@ export default defineWidget<Data, Config>({
 
     return (
       <div class="k-pad k-col">
-        <Header title={title} icon="✅" onClick={openApp} right={<span class="k-count">{tasks.length || ''}</span>} />
+        <Header title={title} icon="✅" onClick={openApp} right={<>{compact && add.button}<span class="k-count">{tasks.length || ''}</span></>} />
+        {compact && add.field}
         <Scroll>
-          {tasks.length === 0 && <Empty icon="🎉">Всё сделано</Empty>}
-          {size === 'M'
-            ? tasks.slice(0, 3).map(row)
+          {tasks.length === 0 && !add.open && <Empty icon="🎉">Всё сделано</Empty>}
+          {compact
+            ? tasks.map(row)
             : [...groups].map(([g, list]) => (
                 <Group key={g} label={g}>
                   {list.map(row)}
                 </Group>
               ))}
         </Scroll>
-        {size !== 'M' && <AddInput placeholder="Новая задача: «отчёт завтра в 10»" onSubmit={(text) => run('create', { text })} />}
+        {!compact && <AddInput placeholder="Новая задача: «отчёт завтра в 10»" onSubmit={(text) => run('create', { text })} />}
       </div>
     );
   },

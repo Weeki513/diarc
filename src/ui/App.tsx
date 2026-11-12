@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { bg } from '../shared/messages';
 import { builtinCommands } from './commands';
-import { MODE, closeBar, favicon, focusTab, openUrl, setCloser, webSearch } from './env';
+import { MODE, TAB_ORIGIN, closeBar, favicon, focusTab, openUrl, setCloser, webSearch } from './env';
 import { useSnapshot, type Snapshot } from './hooks';
 import { asyncResults, rank, syncResults, type Result } from './search';
 import { Grid } from './Grid';
@@ -64,6 +64,13 @@ export function App(props: { initial: Snapshot }) {
         setVisible(false);
         parent.postMessage({ diarc: 'close' }, '*');
       } else if (MODE === 'window' || MODE === 'popup') window.close();
+      else if (MODE === 'tab') {
+        chrome.tabs.getCurrent().then((t) => {
+          if (t?.id === undefined) return;
+          if (TAB_ORIGIN === 'replace') chrome.tabs.goBack(t.id).catch(() => chrome.tabs.remove(t.id!));
+          else chrome.tabs.remove(t.id);
+        });
+      }
     });
     loadTabs();
     if (MODE === 'frame') {
@@ -86,7 +93,8 @@ export function App(props: { initial: Snapshot }) {
       parent.postMessage({ diarc: 'ready' }, '*');
       return () => window.removeEventListener('message', onMsg);
     }
-    if (MODE === 'popup') bg({ type: 'widget:refresh' }).catch(() => {});
+    if (MODE === 'tab') document.title = 'Diarc';
+    if (MODE === 'popup' || MODE === 'tab') bg({ type: 'widget:refresh' }).catch(() => {});
     if (MODE === 'window') {
       bg({ type: 'widget:refresh' }).catch(() => {});
       const onBlur = () => setTimeout(() => !document.hasFocus() && window.close(), 150);

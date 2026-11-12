@@ -19,7 +19,7 @@ Widgets are auto-registered (`import.meta.glob`); do not edit a registry.
 
 ## Architecture (where things live)
 - `src/content/index.ts` — 3 KB content script. Only creates a hidden iframe in a closed shadow root and shows/hides it. No UI, no data.
-- `src/pages/overlay.html` + `src/ui/*` — the bar itself (an extension page inside that iframe, or a popup window as fallback).
+- `src/pages/overlay.html` + `src/ui/*` — the bar itself: an extension page inside that iframe; on pages without injection (Dia new tab, dia://, Web Store, PDF) it is shown as a tab (`mode=tab`), a popup window is the last resort.
 - `src/background/*` — service worker: shortcut, injection/fallback, widget refresh (`chrome.alarms`), OAuth (`launchWebAuthFlow`).
 - `src/shared/*` — types and helpers shared by both sides. `widget.ts` is the widget API.
 - Data flow: background writes `cache:<tileId>` to `chrome.storage.local`; the overlay reads the snapshot on load and listens to `storage.onChanged`. Mutations go through `chrome.runtime.sendMessage` (`src/shared/messages.ts`).

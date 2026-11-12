@@ -75,6 +75,8 @@ export interface WidgetViewProps<D = any, C = Record<string, any>> {
   /** Run one of the widget's `actions` in the service worker. Data refreshes afterwards. */
   run(action: string, payload?: unknown): Promise<unknown>;
   refresh(): void;
+  /** Save part of this tile's config (e.g. a link added from the tile itself). Re-renders with the new config. */
+  setConfig(patch: Partial<C>): Promise<void>;
   /** Open a URL: switches to an existing tab with that URL if there is one. */
   open(url: string, opts?: { newTab?: boolean }): void;
 }

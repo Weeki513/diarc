@@ -1,4 +1,4 @@
-import { defineWidget } from '../../shared/widget';
+import { defineWidget, type WidgetContext } from '../../shared/widget';
 import { Big, Header } from '../../ui/kit';
 
 /**
@@ -20,20 +20,68 @@ interface Config {
 const ICON = (c: number) =>
   c === 0 ? '☀️' : c <= 2 ? '🌤️' : c === 3 ? '☁️' : c <= 48 ? '🌫️' : c <= 67 ? '🌧️' : c <= 77 ? '🌨️' : c <= 82 ? '🌦️' : c <= 86 ? '🌨️' : '⛈️';
 
+interface Place {
+  name: string;
+  latitude: number;
+  longitude: number;
+}
+
+async function findCity(ctx: WidgetContext<Config>, city: string): Promise<Place> {
+  const geo = await ctx.http(`https://geocoding-api.open-meteo.com/v1/search?count=1&language=ru&name=${encodeURIComponent(city)}`);
+  const p = geo.results?.[0];
+  if (!p) throw new Error(`Город «${city}» не найден`);
+  return { name: p.name, latitude: p.latitude, longitude: p.longitude };
+}
+
+/**
+ * Approximate location by IP (city level), cached for 6 hours. Service workers have no
+ * navigator.geolocation, and IP lookup needs no permission prompt.
+ */
+async function detectLocation(ctx: WidgetContext<Config>): Promise<Place> {
+  const cached = await ctx.store.get<Place & { at: number }>('auto');
+  if (cached && Date.now() - cached.at < 6 * 3600_000) return cached;
+  let place: Place | undefined;
+  try {
+    const g = await ctx.http('https://get.geojs.io/v1/ip/geo.json');
+    if (g.latitude) place = { name: g.city || g.region || g.country, latitude: Number(g.latitude), longitude: Number(g.longitude) };
+  } catch {}
+  if (!place) {
+    try {
+      const g = await ctx.http('https://ipapi.co/json/');
+      if (g.latitude) place = { name: g.city || g.region, latitude: g.latitude, longitude: g.longitude };
+    } catch {}
+  }
+  if (!place) throw new Error('Не удалось определить местоположение. Укажите город в настройках виджета');
+  // Russian city name, if Open-Meteo knows it.
+  try {
+    const ru = await findCity(ctx, place.name);
+    if (Math.abs(ru.latitude - place.latitude) < 1 && Math.abs(ru.longitude - place.longitude) < 1) place.name = ru.name;
+  } catch {}
+  await ctx.store.set('auto', { ...place, at: Date.now() });
+  return place;
+}
+
 export default defineWidget<Data, Config>({
   id: 'weather',
   name: 'Погода',
-  description: 'Текущая погода и прогноз на несколько часов (Open-Meteo).',
+  description: 'Погода там, где вы (или в выбранном городе) и прогноз на несколько часов.',
   icon: '🌤️',
   sizes: ['S', 'M'],
   defaultSize: 'S',
   refreshMinutes: 30,
-  settings: [{ key: 'city', label: 'Город', type: 'text', default: 'Москва' }],
+  settings: [
+    {
+      key: 'city',
+      label: 'Город',
+      type: 'text',
+      default: '',
+      placeholder: 'Автоматически по местоположению',
+      help: 'Оставьте пустым, чтобы город определялся автоматически',
+    },
+  ],
 
   async fetch(ctx) {
-    const geo = await ctx.http(`https://geocoding-api.open-meteo.com/v1/search?count=1&language=ru&name=${encodeURIComponent(ctx.config.city || 'Москва')}`);
-    const p = geo.results?.[0];
-    if (!p) throw new Error(`Город «${ctx.config.city}» не найден`);
+    const p = ctx.config.city?.trim() ? await findCity(ctx, ctx.config.city.trim()) : await detectLocation(ctx);
     const w = await ctx.http(
       `https://api.open-meteo.com/v1/forecast?latitude=${p.latitude}&longitude=${p.longitude}&current=temperature_2m,weather_code&hourly=temperature_2m,weather_code&daily=temperature_2m_max,temperature_2m_min&forecast_days=2&timezone=auto`,
     );

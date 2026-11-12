@@ -75,7 +75,7 @@ extension (`dia://extensions` → ↻). Then open the bar → ▦ → **+** → 
 |---|---|---|
 | `id` | `string` | kebab-case, equals folder name |
 | `name`, `description`, `icon` | `string` | shown in gallery and headers |
-| `sizes` | `('S'\|'M'\|'L'\|'XL')[]` | S = 1×1, M = 2×1, L = 2×2, XL = 4×2 cells on a 4-column grid; a cell is ~165×128 px |
+| `sizes` | `('S'\|'M'\|'L'\|'XL')[]` | S = 1×1, M = 2×1, L = 2×2, XL = 4×2 cells on a 4-column grid; a cell is ~165×150 px; lists must scroll (use `<Scroll>`), never cut items |
 | `defaultSize` | size | used when added |
 | `auth?` | `{ provider: 'google' \| 'ticktick', scopes?: string[] }` or `(config) => that \| undefined` | the tile shows a «Подключить» button automatically when auth is missing |
 | `refreshMinutes?` | `number` | default 10 |

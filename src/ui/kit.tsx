@@ -6,6 +6,7 @@ import type { ComponentChildren, JSX } from 'preact';
 import { useEffect, useRef, useState } from 'preact/hooks';
 
 export * from './icons';
+import { IconPlus } from './icons';
 
 export function Header(props: { title: string; icon?: string; right?: ComponentChildren; onClick?: () => void }) {
   return (
@@ -91,8 +92,18 @@ export function Check(props: { checked: boolean; onChange: (v: boolean) => void;
 }
 
 /** Input that calls onSubmit(text) on Enter, shows a spinner while it runs, and clears on success. */
-export function AddInput(props: { placeholder: string; onSubmit: (text: string) => Promise<unknown> }) {
+export function AddInput(props: {
+  placeholder: string;
+  onSubmit: (text: string) => Promise<unknown>;
+  autoFocus?: boolean;
+  /** Called on Escape, or on blur while empty. */
+  onCancel?: () => void;
+}) {
   const [value, setValue] = useState('');
+  const ref = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    if (props.autoFocus) ref.current?.focus();
+  }, []);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
   const submit = async () => {
@@ -113,10 +124,15 @@ export function AddInput(props: { placeholder: string; onSubmit: (text: string) 
     <div class="k-add">
       <span class="k-add-plus">{busy ? <span class="k-spin" /> : '+'}</span>
       <input
+        ref={ref}
         value={value}
         placeholder={props.placeholder}
         onInput={(e) => setValue((e.target as HTMLInputElement).value)}
-        onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); submit(); } }}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') { e.preventDefault(); submit(); }
+          if (e.key === 'Escape' && props.onCancel) { e.stopPropagation(); props.onCancel(); }
+        }}
+        onBlur={() => { if (!value.trim() && props.onCancel) props.onCancel(); }}
         onClick={(e) => e.stopPropagation()}
       />
       {err && <span class="k-add-err" title={err}>!</span>}
@@ -175,5 +191,32 @@ export function useOptimistic() {
     hidden,
     hide: (id: string) => setHidden((s) => new Set(s).add(id)),
     restore: (id: string) => setHidden((s) => { const n = new Set(s); n.delete(id); return n; }),
+  };
+}
+
+/**
+ * "+" for tiles too small for a permanent add field: put `add.button` in Header's `right`
+ * and render `add.field` above the list. Large tiles can show <AddInput> permanently instead.
+ */
+export function useAddField(placeholder: string, onSubmit: (text: string) => Promise<unknown>) {
+  const [open, setOpen] = useState(false);
+  return {
+    open,
+    button: (
+      <IconButton title="Добавить" onClick={() => setOpen((v) => !v)}>
+        <IconPlus />
+      </IconButton>
+    ),
+    field: open ? (
+      <AddInput
+        autoFocus
+        placeholder={placeholder}
+        onCancel={() => setOpen(false)}
+        onSubmit={async (t) => {
+          await onSubmit(t);
+          setOpen(false);
+        }}
+      />
+    ) : null,
   };
 }

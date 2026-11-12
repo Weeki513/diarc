@@ -1,6 +1,16 @@
-/** Overlay environment: frame (inside a page) or window (fallback popup). */
-export type Mode = 'frame' | 'popup' | 'window' | 'page';
-export const MODE: Mode = (new URLSearchParams(location.search).get('mode') as Mode) ?? 'page';
+/**
+ * Overlay environment:
+ *  - frame:  iframe over a regular page (the normal case)
+ *  - tab:    the bar shown as a page in a browser tab, for pages nothing can be injected into
+ *            (Dia's new tab is replaced in place; for dia://, Web Store, PDF a tab opens next to it)
+ *  - window / popup: last-resort fallbacks
+ */
+export type Mode = 'frame' | 'tab' | 'popup' | 'window' | 'page';
+const params = new URLSearchParams(location.search);
+export const MODE: Mode = (params.get('mode') as Mode) ?? 'page';
+/** In tab mode: 'replace' = this tab was Dia's new tab; 'new' = opened next to `from`. */
+export const TAB_ORIGIN = params.get('origin') as 'replace' | 'new' | null;
+const FROM_TAB = Number(params.get('from')) || undefined;
 
 let closer: () => void = () => {};
 export function setCloser(fn: () => void) {
@@ -13,8 +23,12 @@ export function closeBar() {
 
 /** The tab the user was looking at when the bar opened. */
 export async function targetTab(): Promise<chrome.tabs.Tab | undefined> {
-  if (MODE === 'frame') {
+  if (MODE === 'frame' || (MODE === 'tab' && TAB_ORIGIN === 'replace')) {
     const t = await chrome.tabs.getCurrent();
+    if (t) return t;
+  }
+  if (MODE === 'tab' && FROM_TAB) {
+    const t = await chrome.tabs.get(FROM_TAB).catch(() => undefined);
     if (t) return t;
   }
   try {
@@ -42,6 +56,11 @@ export async function focusTab(tab: chrome.tabs.Tab) {
 export async function openUrl(url: string, newTab = true) {
   const existing = (await chrome.tabs.query({})).find((t) => t.url === url || t.pendingUrl === url);
   if (existing) return focusTab(existing);
+  if (MODE === 'tab') {
+    // The bar occupies a tab of its own: load the result right here.
+    const self = await chrome.tabs.getCurrent();
+    if (self?.id !== undefined) return void chrome.tabs.update(self.id, { url });
+  }
   const cur = await targetTab();
   closeBar();
   if (!newTab && cur?.id !== undefined) await chrome.tabs.update(cur.id, { url });
@@ -50,6 +69,10 @@ export async function openUrl(url: string, newTab = true) {
 }
 
 export async function webSearch(text: string, newTab = true) {
+  if (MODE === 'tab') {
+    const self = await chrome.tabs.getCurrent();
+    if (self?.id !== undefined) return chrome.search.query({ text, tabId: self.id });
+  }
   const cur = await targetTab();
   closeBar();
   if (cur && !newTab) await chrome.search.query({ text, tabId: cur.id });

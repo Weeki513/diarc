@@ -1,7 +1,7 @@
 import { useState } from 'preact/hooks';
 import { defineWidget, type WidgetContext } from '../../shared/widget';
 import { addDays, fmtDayLabel, fmtRelative, fmtTime, parseWhen, startOfDay, toLocalInput } from '../../shared/dates';
-import { AddInput, Big, Button, Dot, Empty, Group, Header, IconButton, IconPencil, IconTrash, Row, Scroll, useOptimistic } from '../../ui/kit';
+import { AddInput, useAddField, Big, Button, Dot, Empty, Group, Header, IconButton, IconPencil, IconTrash, Row, Scroll, useOptimistic } from '../../ui/kit';
 import { useTick } from '../../ui/hooks';
 
 interface CalEvent {
@@ -113,9 +113,11 @@ export default defineWidget<Data, Config>({
     const [editing, setEditing] = useState<string | null>(null);
     const events = (data?.events ?? []).filter((e) => !hidden.has(e.id) && new Date(e.end) > now);
     const openEvent = (e: CalEvent) => e.link && open(e.link);
+    const add = useAddField('Новое событие: «созвон завтра в 15:00»', (text) => run('create', { text }));
+    const compact = size === 'M';
 
-    if (size === 'S' || size === 'M') {
-      const next = events.filter((e) => !e.allDay).slice(0, size === 'S' ? 1 : 2);
+    if (size === 'S') {
+      const next = events.filter((e) => !e.allDay).slice(0, 1);
       return (
         <div class="k-pad">
           <Header title="Календарь" icon="📅" onClick={() => open('https://calendar.google.com/')} />
@@ -125,9 +127,6 @@ export default defineWidget<Data, Config>({
               <Big sub={fmtRelative(new Date(next[0].start), now)}>{next[0].title}</Big>
             </div>
           )}
-          {size === 'M' && next.map((e) => (
-            <Row key={e.id} leading={<Dot color={e.color} />} title={e.title} meta={fmtTime(new Date(e.start))} onClick={() => openEvent(e)} active={new Date(e.start) <= now} />
-          ))}
         </div>
       );
     }
@@ -140,9 +139,10 @@ export default defineWidget<Data, Config>({
 
     return (
       <div class="k-pad k-col">
-        <Header title="Календарь" icon="📅" onClick={() => open('https://calendar.google.com/')} />
+        <Header title="Календарь" icon="📅" onClick={() => open('https://calendar.google.com/')} right={compact ? add.button : undefined} />
+        {compact && add.field}
         <Scroll>
-          {events.length === 0 && <Empty icon="☕">Свободно</Empty>}
+          {events.length === 0 && !add.open && <Empty icon="☕">Свободно</Empty>}
           {[...groups].map(([label, list]) => (
             <Group key={label} label={label}>
               {list.map((e) =>
@@ -153,7 +153,7 @@ export default defineWidget<Data, Config>({
                     key={e.id}
                     leading={<Dot color={e.color} />}
                     title={e.title}
-                    subtitle={e.meet ? 'Google Meet' : e.location}
+                    subtitle={compact ? undefined : e.meet ? 'Google Meet' : e.location}
                     meta={e.allDay ? 'весь день' : `${fmtTime(new Date(e.start))}–${fmtTime(new Date(e.end))}`}
                     active={!e.allDay && new Date(e.start) <= now}
                     onClick={() => (e.meet && new Date(e.start).getTime() - now.getTime() < 10 * 60_000 ? open(e.meet) : openEvent(e))}
@@ -169,7 +169,7 @@ export default defineWidget<Data, Config>({
             </Group>
           ))}
         </Scroll>
-        <AddInput placeholder="Новое событие: «созвон завтра в 15:00»" onSubmit={(text) => run('create', { text })} />
+        {!compact && <AddInput placeholder="Новое событие: «созвон завтра в 15:00»" onSubmit={(text) => run('create', { text })} />}
       </div>
     );
   },

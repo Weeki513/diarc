@@ -63,7 +63,7 @@ async function fetchApi(ctx: WidgetContext<Config>): Promise<Data> {
   const n = Number(ctx.config.account) || 0;
   const q = ctx.config.query || 'in:inbox is:unread';
   const list = await ctx.http<{ messages?: { id: string; threadId: string }[]; resultSizeEstimate?: number }>(
-    `${API}/messages?maxResults=15&q=${encodeURIComponent(q)}`,
+    `${API}/messages?maxResults=30&q=${encodeURIComponent(q)}`,
     { auth: AUTH },
   );
   const msgs = await Promise.all(
@@ -148,7 +148,7 @@ export default defineWidget<Data, Config>({
         <Header title="Gmail" icon="✉️" onClick={inbox} right={<span class="k-count">{unread || ''}</span>} />
         <Scroll>
           {mails.length === 0 && <Empty icon="📭">Нет непрочитанных</Empty>}
-          {mails.slice(0, size === 'M' ? 2 : 20).map((m) => (
+          {mails.map((m) => (
             <Row
               key={m.id}
               title={
