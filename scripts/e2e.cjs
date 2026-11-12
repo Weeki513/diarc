@@ -160,6 +160,7 @@ function mockCache() {
 
   // Dark theme screenshot
   await page.emulateMedia({ colorScheme: 'dark' });
+  await page.evaluate(() => { document.body.style.background = '#fff'; });
   await toggle();
   await f.waitForSelector('.root.shown');
   await page.waitForTimeout(250);

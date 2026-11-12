@@ -11,9 +11,8 @@
   --sel: rgba(94, 92, 230, 0.12);
   --accent: #5e5ce6;
   --danger: #e5484d;
-  --shadow: 0 30px 80px rgba(0, 0, 0, 0.28), 0 0 0 0.5px rgba(0, 0, 0, 0.12);
+  --shadow: 0 24px 70px rgba(0, 0, 0, 0.3), 0 4px 14px rgba(0, 0, 0, 0.12), 0 0 0 0.5px rgba(0, 0, 0, 0.14);
   --tile-shadow: 0 1px 2px rgba(0, 0, 0, 0.05), 0 0 0 0.5px rgba(0, 0, 0, 0.07);
-  --dim: rgba(0, 0, 0, 0.18);
   --r: 18px;
   font: 14px/1.35 -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Inter', system-ui, sans-serif;
   color: var(--text);
@@ -24,14 +23,14 @@
     --bg: #1f1f23; --bg-2: #2a2a2f; --tile: #2a2a30; --text: #f2f2f4; --text-2: #a3a3ad; --text-3: #75757f;
     --line: rgba(255, 255, 255, 0.08); --hover: rgba(255, 255, 255, 0.06); --sel: rgba(129, 127, 255, 0.2);
     --accent: #8b89ff; --shadow: 0 30px 80px rgba(0, 0, 0, 0.55), 0 0 0 0.5px rgba(255, 255, 255, 0.12);
-    --tile-shadow: 0 0 0 0.5px rgba(255, 255, 255, 0.08); --dim: rgba(0, 0, 0, 0.35);
+    --tile-shadow: 0 0 0 0.5px rgba(255, 255, 255, 0.08);
   }
 }
 .root[data-theme='dark'] {
   --bg: #1f1f23; --bg-2: #2a2a2f; --tile: #2a2a30; --text: #f2f2f4; --text-2: #a3a3ad; --text-3: #75757f;
   --line: rgba(255, 255, 255, 0.08); --hover: rgba(255, 255, 255, 0.06); --sel: rgba(129, 127, 255, 0.2);
   --accent: #8b89ff; --shadow: 0 30px 80px rgba(0, 0, 0, 0.55), 0 0 0 0.5px rgba(255, 255, 255, 0.12);
-  --tile-shadow: 0 0 0 0.5px rgba(255, 255, 255, 0.08); --dim: rgba(0, 0, 0, 0.35);
+  --tile-shadow: 0 0 0 0.5px rgba(255, 255, 255, 0.08);
 }
 
 * { box-sizing: border-box; }
@@ -41,14 +40,18 @@ kbd { font: 11px/1 inherit; font-family: inherit; padding: 2px 5px; border-radiu
 code { font: 12px ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--bg-2); padding: 1px 4px; border-radius: 4px; }
 
 /* ---------- Layout ---------- */
-.root { position: fixed; inset: 0; color: var(--text); }
-.root.mode-frame { background: var(--dim); opacity: 0; transition: opacity 0.09s ease-out; }
+.root { position: fixed; inset: 0; color: var(--text); color-scheme: light; }
+.root[data-theme='dark'] { color-scheme: dark; }
+@media (prefers-color-scheme: dark) { .root:not([data-theme='light']) { color-scheme: dark; } }
+/* Floats over the page without dimming it (Arc-style); a click outside the panel closes it. */
+.root.mode-frame { background: transparent; opacity: 0; transition: opacity 0.09s ease-out; }
 .root.mode-frame.shown { opacity: 1; }
 .root.mode-frame .panel { position: absolute; left: 50%; top: 14vh; width: min(760px, calc(100vw - 32px)); max-height: calc(86vh - 24px);
   transform: translateX(-50%) scale(0.985); transition: transform 0.12s cubic-bezier(0.2, 0.9, 0.3, 1.2); }
 .root.mode-frame.shown .panel { transform: translateX(-50%) scale(1); }
-.root.mode-window, .root.mode-page { background: var(--bg); }
-.root.mode-window .panel, .root.mode-page .panel { position: absolute; inset: 0; border-radius: 0; box-shadow: none; max-height: none; }
+html.popup, html.popup body { width: 760px; height: 580px; overflow: hidden; }
+.root.mode-window, .root.mode-page, .root.mode-popup { background: var(--bg); }
+.root.mode-window .panel, .root.mode-page .panel, .root.mode-popup .panel { position: absolute; inset: 0; border-radius: 0; box-shadow: none; max-height: none; }
 
 .panel { display: flex; flex-direction: column; background: var(--bg); border-radius: var(--r); box-shadow: var(--shadow); overflow: hidden; }
 

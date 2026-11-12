@@ -63,7 +63,7 @@ export function App(props: { initial: Snapshot }) {
       if (MODE === 'frame') {
         setVisible(false);
         parent.postMessage({ diarc: 'close' }, '*');
-      } else if (MODE === 'window') window.close();
+      } else if (MODE === 'window' || MODE === 'popup') window.close();
     });
     loadTabs();
     if (MODE === 'frame') {
@@ -86,6 +86,7 @@ export function App(props: { initial: Snapshot }) {
       parent.postMessage({ diarc: 'ready' }, '*');
       return () => window.removeEventListener('message', onMsg);
     }
+    if (MODE === 'popup') bg({ type: 'widget:refresh' }).catch(() => {});
     if (MODE === 'window') {
       bg({ type: 'widget:refresh' }).catch(() => {});
       const onBlur = () => setTimeout(() => !document.hasFocus() && window.close(), 150);

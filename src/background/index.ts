@@ -34,7 +34,26 @@ async function toggle(tab?: chrome.tabs.Tab): Promise<void> {
       /* fall through */
     }
   }
+  if (await openActionPopup(tab?.windowId)) return;
   await openOverlayWindow(overlayWindowId);
+}
+
+/**
+ * Fallback #1 for pages where nothing can be injected (Dia's new tab, dia://, Web Store, PDF):
+ * the extension's toolbar popup. It drops down inside the browser window, closes on blur,
+ * and feels much closer to the overlay than a separate window.
+ */
+async function openActionPopup(windowId?: number): Promise<boolean> {
+  try {
+    await chrome.action.setPopup({ popup: 'overlay.html?mode=popup' });
+    await chrome.action.openPopup(windowId !== undefined ? { windowId } : undefined);
+    return true;
+  } catch {
+    return false;
+  } finally {
+    // Keep the icon click as a toggle on normal pages.
+    chrome.action.setPopup({ popup: '' }).catch(() => {});
+  }
 }
 
 async function sendToggle(tabId: number): Promise<boolean> {
@@ -46,7 +65,7 @@ async function sendToggle(tabId: number): Promise<boolean> {
   }
 }
 
-/** Fallback for pages where nothing can be injected (new tab, dia://, Web Store, PDF). */
+/** Fallback #2: a small popup window, if the toolbar popup is unavailable. */
 async function openOverlayWindow(existing?: number): Promise<void> {
   if (existing !== undefined) {
     try {

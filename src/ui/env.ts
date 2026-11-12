@@ -1,5 +1,6 @@
 /** Overlay environment: frame (inside a page) or window (fallback popup). */
-export const MODE: 'frame' | 'window' | 'page' = (new URLSearchParams(location.search).get('mode') as 'frame' | 'window') ?? 'page';
+export type Mode = 'frame' | 'popup' | 'window' | 'page';
+export const MODE: Mode = (new URLSearchParams(location.search).get('mode') as Mode) ?? 'page';
 
 let closer: () => void = () => {};
 export function setCloser(fn: () => void) {
