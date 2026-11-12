@@ -104,13 +104,12 @@ async function ticktick(interactive: boolean, forceRefresh: boolean): Promise<st
   url.searchParams.set('redirect_uri', redirectUrl());
   url.searchParams.set('response_type', 'code');
 
-  let responseUrl: string | undefined;
-  try {
-    responseUrl = await chrome.identity.launchWebAuthFlow({ url: url.toString(), interactive: true });
-  } catch (e) {
-    throw new AuthRequiredError('ticktick', `TickTick: ${(e as Error).message}`);
-  }
-  const q = new URL(responseUrl!).searchParams;
+  // TickTick's sign-in page fails inside the launchWebAuthFlow window ("Authorization page could not
+  // be loaded"), so authorize in a normal tab and catch the redirect to chromiumapp.org instead.
+  const responseUrl = await authorizeInTab(url.toString(), redirectUrl()).catch((e: Error) => {
+    throw new AuthRequiredError('ticktick', `TickTick: ${e.message}`);
+  });
+  const q = new URL(responseUrl).searchParams;
   if (q.get('state') !== state || !q.get('code')) throw new AuthRequiredError('ticktick', 'TickTick не вернул код авторизации');
 
   const res = await fetch('https://ticktick.com/oauth/token', {
@@ -151,4 +150,39 @@ export async function status(): Promise<Record<AuthProviderId, { connected: bool
     google: { connected: !!g?.scopes?.length, scopes: g?.scopes },
     ticktick: { connected: !!t && t.expiresAt > Date.now() },
   };
+}
+
+/**
+ * OAuth in a regular browser tab: opens `url`, waits until the tab navigates to `redirect`,
+ * closes it and returns that URL. Uses the user's existing session on the provider's site.
+ */
+function authorizeInTab(url: string, redirect: string, timeoutMs = 5 * 60_000): Promise<string> {
+  return new Promise((resolve, reject) => {
+    let tabId: number | undefined;
+    // Extension API calls keep the service worker alive while the user signs in.
+    const keepAlive = setInterval(() => chrome.runtime.getPlatformInfo(), 20_000);
+    const timer = setTimeout(() => done(new Error('время ожидания входа истекло')), timeoutMs);
+    const done = (err: Error | null, result?: string) => {
+      clearInterval(keepAlive);
+      clearTimeout(timer);
+      chrome.tabs.onUpdated.removeListener(onUpdated);
+      chrome.tabs.onRemoved.removeListener(onRemoved);
+      if (tabId !== undefined) chrome.tabs.remove(tabId).catch(() => {});
+      tabId = undefined;
+      err ? reject(err) : resolve(result!);
+    };
+    const onUpdated = (id: number, info: { url?: string }, tab: chrome.tabs.Tab) => {
+      const u = info.url ?? tab.pendingUrl ?? tab.url;
+      if (id === tabId && u?.startsWith(redirect)) done(null, u);
+    };
+    const onRemoved = (id: number) => {
+      if (id === tabId) {
+        tabId = undefined;
+        done(new Error('окно входа закрыто'));
+      }
+    };
+    chrome.tabs.onUpdated.addListener(onUpdated);
+    chrome.tabs.onRemoved.addListener(onRemoved);
+    chrome.tabs.create({ url, active: true }).then((t) => (tabId = t.id), (e) => done(e));
+  });
 }
