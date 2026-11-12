@@ -30,10 +30,11 @@ type W = Window & { __diarc?: boolean };
   let unloadTimer: number | undefined;
 
   const CSS = `
-    :host { all: initial; position: fixed; inset: 0; z-index: 2147483647; display: none; }
-    iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; background: transparent; color-scheme: normal; }
-    .shell { position: absolute; inset: 0; background: transparent; font: 16px -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif; }
-    .bar { position: absolute; left: 50%; top: 14vh; transform: translateX(-50%); width: min(760px, calc(100vw - 32px)); height: 58px; box-sizing: border-box;
+    :host { all: initial; position: fixed; inset: 0; z-index: 2147483647; display: none; pointer-events: none; }
+    iframe { position: absolute; left: 50%; top: calc(14vh - 40px); transform: translateX(-50%); width: min(880px, 100vw); height: 120px;
+      border: 0; background: transparent; color-scheme: normal; pointer-events: auto; }
+    .shell { position: absolute; inset: 0; background: transparent; pointer-events: none; font: 16px -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif; }
+    .bar { position: absolute; left: 50%; top: 14vh; transform: translateX(-50%); width: min(760px, calc(100vw - 32px)); height: 58px; box-sizing: border-box; pointer-events: auto;
       border-radius: 18px; background: #fbfbfd; box-shadow: 0 30px 80px rgba(0,0,0,.28), 0 0 0 .5px rgba(0,0,0,.12); }
     .bar input { all: unset; box-sizing: border-box; width: 100%; height: 100%; padding: 0 20px 0 52px; font-size: 19px; color: #111; }
     .bar svg { position: absolute; left: 20px; top: 20px; opacity: .45; }
@@ -51,9 +52,15 @@ type W = Window & { __diarc?: boolean };
     root.append(style);
     // Keep page shortcuts from seeing keys typed into the shell.
     for (const t of ['keydown', 'keyup', 'keypress']) host.addEventListener(t, (e) => e.stopPropagation());
-    host.addEventListener('mousedown', (e) => {
-      if (e.composedPath()[0] === shell) hide();
-    });
+    // The page stays interactive around the bar (scroll, select); a click outside closes it.
+    document.addEventListener(
+      'mousedown',
+      (e) => {
+        if (open && !e.composedPath().includes(host!)) hide();
+      },
+      true,
+    );
+    window.addEventListener('resize', () => open && sendViewport());
     document.documentElement.append(host);
   }
 
@@ -83,12 +90,17 @@ type W = Window & { __diarc?: boolean };
     frame?.contentWindow?.postMessage(msg, ORIGIN);
   }
 
+  function sendViewport(): void {
+    post({ diarc: 'viewport', h: window.innerHeight });
+  }
+
   function reveal(): void {
     const text = shellInput?.value ?? '';
     shell?.remove();
     shell = shellInput = null;
     frame!.style.visibility = 'visible';
     frame!.focus();
+    sendViewport();
     post({ diarc: 'open', text });
   }
 
@@ -127,6 +139,9 @@ type W = Window & { __diarc?: boolean };
       ready = true;
       if (open) reveal();
     } else if (d?.diarc === 'close') hide();
+    else if (d?.diarc === 'size' && typeof (d as { h?: number }).h === 'number') {
+      frame.style.height = `${Math.min((d as { h: number }).h, window.innerHeight)}px`;
+    }
   });
 
   chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {

@@ -107,6 +107,13 @@ function mockCache() {
   await f.waitForSelector('.tile');
   await page.waitForTimeout(300);
   await page.screenshot({ path: `${OUT}/1-home.png` });
+  // The page must stay scrollable around the open bar.
+  await page.mouse.move(80, 600);
+  await page.mouse.wheel(0, 400);
+  await page.waitForTimeout(300);
+  const scrolled = await page.evaluate(() => window.scrollY);
+  console.log('page scroll with bar open:', scrolled, scrolled > 0 ? '✓' : '❌');
+  await page.evaluate(() => window.scrollTo(0, 0));
 
   await page.keyboard.type('diarc');
   await f.waitForSelector('.res');
@@ -145,6 +152,13 @@ function mockCache() {
   await page.keyboard.press('Escape');
   await page.keyboard.press('Escape');
   await page.keyboard.press('Escape');
+  await page.waitForTimeout(100);
+  // Reopen and click outside: should close.
+  await toggle();
+  await f.waitForSelector('.root.shown');
+  await page.mouse.click(60, 700);
+  await page.waitForTimeout(200);
+  console.log('click outside closes:', await page.$eval('diarc-overlay', (e) => getComputedStyle(e).display));
   await page.waitForTimeout(200);
   const hidden = await page.$eval('diarc-overlay', (e) => getComputedStyle(e).display);
   console.log('after Esc host display:', hidden);

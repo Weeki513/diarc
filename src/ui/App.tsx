@@ -84,12 +84,21 @@ export function App(props: { initial: Snapshot }) {
             input.current?.focus();
             document.querySelector('.grid-wrap')?.scrollTo(0, 0);
           });
+        } else if (e.data?.diarc === 'viewport') {
+          document.documentElement.style.setProperty('--page-h', `${e.data.h}px`);
         } else if (e.data?.diarc === 'hide') {
           setVisible(false);
           reset();
         }
       };
       window.addEventListener('message', onMsg);
+      // Tell the content script how tall the panel is, so the iframe covers only the panel.
+      const panel = document.querySelector('.panel');
+      const ro = new ResizeObserver(() => {
+        const h = (panel as HTMLElement | null)?.offsetHeight ?? 0;
+        parent.postMessage({ diarc: 'size', h: h + 40 + 90 }, '*');
+      });
+      if (panel) ro.observe(panel);
       parent.postMessage({ diarc: 'ready' }, '*');
       return () => window.removeEventListener('message', onMsg);
     }
