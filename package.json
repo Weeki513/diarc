@@ -1,0 +1,26 @@
+{
+  "name": "diarc",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Arc-style command bar for Dia Browser: search tabs, history, bookmarks and live widgets (Calendar, Gmail, TickTick) in an overlay.",
+  "type": "module",
+  "scripts": {
+    "dev": "node scripts/build.mjs --watch",
+    "build": "node scripts/build.mjs",
+    "typecheck": "tsc --noEmit",
+    "icons": "node scripts/icons.mjs",
+    "new-widget": "node scripts/new-widget.mjs",
+    "zip": "node scripts/build.mjs && cd dist && zip -qr ../diarc.zip . && echo 'diarc.zip ready'",
+    "test:e2e": "node scripts/e2e.cjs"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "@preact/preset-vite": "^2.10.6",
+    "@types/chrome": "^0.3.7",
+    "typescript": "^5.9.3",
+    "vite": "^5.4.21"
+  },
+  "dependencies": {
+    "preact": "^10.29.8"
+  }
+}

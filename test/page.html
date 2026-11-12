@@ -1,0 +1,10 @@
+<!doctype html>
+<html><head><title>Test page — Diarc</title></head>
+<body style="font: 16px system-ui; padding: 40px; background: linear-gradient(135deg,#e0e7ff,#fdf2f8); min-height: 100vh; margin: 0">
+  <h1>Example article</h1>
+  <p>Some page content behind the command bar. Pressed keys: <span id="keys"></span></p>
+  <script>
+    window.pageKeys = [];
+    document.addEventListener('keydown', (e) => { window.pageKeys.push(e.key); document.getElementById('keys').textContent = window.pageKeys.join(''); }, true);
+  </script>
+</body></html>

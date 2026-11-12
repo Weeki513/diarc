@@ -1,0 +1,31 @@
+{
+  "manifest_version": 3,
+  "name": "Diarc — Command Bar",
+  "short_name": "Diarc",
+  "version": "0.1.0",
+  "description": "Arc-style command bar for Dia: search tabs, history and bookmarks, plus Calendar, Gmail and TickTick widgets.",
+  "minimum_chrome_version": "120",
+  "icons": { "16": "icons/16.png", "32": "icons/32.png", "48": "icons/48.png", "128": "icons/128.png" },
+  "action": { "default_title": "Diarc command bar", "default_icon": { "16": "icons/16.png", "32": "icons/32.png" } },
+  "background": { "service_worker": "background.js", "type": "module" },
+  "options_page": "options.html",
+  "permissions": ["tabs", "history", "bookmarks", "storage", "alarms", "identity", "scripting", "favicon", "search"],
+  "host_permissions": ["<all_urls>"],
+  "content_scripts": [
+    {
+      "matches": ["http://*/*", "https://*/*", "file:///*"],
+      "js": ["content.js"],
+      "run_at": "document_start",
+      "all_frames": false
+    }
+  ],
+  "web_accessible_resources": [
+    { "resources": ["overlay.html", "assets/*"], "matches": ["<all_urls>"] }
+  ],
+  "commands": {
+    "toggle-command-bar": {
+      "suggested_key": { "default": "Ctrl+Shift+Space", "mac": "MacCtrl+Shift+Space" },
+      "description": "Open / close the command bar"
+    }
+  }
+}

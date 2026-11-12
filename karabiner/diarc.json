@@ -1,0 +1,27 @@
+{
+  "title": "Diarc — Arc-style command bar for Dia",
+  "rules": [
+    {
+      "description": "Dia: ⌘T opens the Diarc command bar (sends ⌃⇧Space)",
+      "manipulators": [
+        {
+          "type": "basic",
+          "from": { "key_code": "t", "modifiers": { "mandatory": ["command"], "optional": ["caps_lock"] } },
+          "to": [{ "key_code": "spacebar", "modifiers": ["left_control", "left_shift"] }],
+          "conditions": [{ "type": "frontmost_application_if", "bundle_identifiers": ["^company\\.thebrowser\\.dia$"] }]
+        }
+      ]
+    },
+    {
+      "description": "Dia: ⌘K opens a regular new tab (sends ⌘T)",
+      "manipulators": [
+        {
+          "type": "basic",
+          "from": { "key_code": "k", "modifiers": { "mandatory": ["command"], "optional": ["caps_lock"] } },
+          "to": [{ "key_code": "t", "modifiers": ["left_command"] }],
+          "conditions": [{ "type": "frontmost_application_if", "bundle_identifiers": ["^company\\.thebrowser\\.dia$"] }]
+        }
+      ]
+    }
+  ]
+}
