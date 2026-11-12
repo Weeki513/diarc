@@ -10,7 +10,7 @@
     "typecheck": "tsc --noEmit",
     "icons": "node scripts/icons.mjs",
     "new-widget": "node scripts/new-widget.mjs",
-    "zip": "node scripts/build.mjs && cd dist && zip -qr ../diarc.zip . && echo 'diarc.zip ready'",
+    "zip": "node scripts/zip.mjs",
     "test:e2e": "node scripts/e2e.cjs"
   },
   "license": "MIT",

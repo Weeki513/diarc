@@ -5,7 +5,7 @@ Dia ставит расширения из Chrome Web Store. Публикаци�
 ## Перед первой загрузкой
 1. Аккаунт: [Chrome Web Store Developer Dashboard](https://chrome.google.com/webstore/devconsole) → оплатить $5, подтвердить email.
 2. Заполнить `.env` (см. `.env.example`) Client ID Google и TickTick, если хотите, чтобы они работали «из коробки».
-3. `npm run zip` → получится `diarc.zip`.
+3. `npm run zip` → получится `diarc.zip`. Скрипт убирает из манифеста поле `key` (оно нужно только для постоянного ID распакованной версии; стор назначает свой ID).
 
 ## Карточка в сторе
 - Название, описание (RU/EN), категория **Productivity**.
@@ -24,6 +24,6 @@ Dia ставит расширения из Chrome Web Store. Публикаци�
 - Широкий доступ `<all_urls>` удлиняет ревью (обычно несколько дней). Это нормально.
 
 ## После первой загрузки
-- Скопируйте Public key (Package → View public key) в `"key"` в `public/manifest.json`, чтобы ID распакованной версии совпадал со сторовой (важно для Redirect URI).
-- Добавьте сторовый Redirect URI в Google и TickTick клиенты (см. `docs/OAUTH.md`).
+- Добавьте Redirect URI сторовой версии (`https://<ID из стора>.chromiumapp.org/`) вторым адресом в клиенты Google и TickTick (см. `docs/OAUTH.md`).
+- Если хотите, чтобы распакованная версия имела тот же ID, что и сторовая, замените `"key"` в `public/manifest.json` на Public key из Developer Dashboard (Package → View public key).
 - Для каждого обновления поднимайте `version` в `public/manifest.json` и `package.json`, затем `npm run zip`.
