@@ -1,46 +1,59 @@
 /* Diarc overlay. Light/dark via prefers-color-scheme, overridable with [data-theme]. */
 :root {
-  --bg: #fbfbfd;
-  --bg-2: rgba(118, 118, 132, 0.13);
-  --tile: rgba(255, 255, 255, 0.92);
-  --text: #141418;
-  --text-2: #55555f;
-  --text-3: #7f7f8a;
-  --line: rgba(0, 0, 0, 0.08);
-  --hover: rgba(0, 0, 0, 0.055);
-  --sel: rgba(94, 92, 230, 0.14);
-  --accent: #5e5ce6;
+  --bg: #fbfbfd; --bg-2: rgba(118, 118, 132, 0.13); --tile: rgba(255, 255, 255, 0.94); --text: #111115; --text-2: #4a4a54; --text-3: #6e6e7a;
+    --line: rgba(0, 0, 0, 0.08); --hover: rgba(0, 0, 0, 0.055); --sel: rgba(94, 92, 230, 0.14); --accent: #5e5ce6;
+    --glass: rgba(255, 255, 255, 0.56); --glass-strong: rgba(250, 250, 252, 0.86); --sheen: rgba(255, 255, 255, 0.3);
+    --rim: rgba(255, 255, 255, 0.95); --rim-2: rgba(255, 255, 255, 0.5); --rim-hot: #fff; --glow: rgba(255, 255, 255, 0.22);
+    --tshadow: 0 0 10px rgba(255, 255, 255, 0.55);
+    --glass-shadow: 0 8px 22px rgba(0, 0, 0, 0.14), 0 1px 4px rgba(0, 0, 0, 0.08), 0 0 0 0.5px rgba(0, 0, 0, 0.08);
   --danger: #e5484d;
-  /* Liquid glass: a thin tint over the refracted page (the refraction itself is drawn by the
-     content script under the iframe), a bright rim where light hits and a soft drop shadow. */
-  --glass: rgba(255, 255, 255, 0.44);
-  --glass-strong: rgba(250, 250, 252, 0.82);
-  --sheen: rgba(255, 255, 255, 0.22);
-  --rim: rgba(255, 255, 255, 0.95);
-  --rim-2: rgba(255, 255, 255, 0.45);
-  --glow: rgba(255, 255, 255, 0.18);
-  --glass-shadow: 0 8px 22px rgba(0, 0, 0, 0.14), 0 1px 4px rgba(0, 0, 0, 0.08), 0 0 0 0.5px rgba(0, 0, 0, 0.06);
   --r: 22px;
   font: 14px/1.35 -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Inter', system-ui, sans-serif;
   color: var(--text);
   -webkit-font-smoothing: antialiased;
 }
+/* Liquid glass: a tint over the refracted page (the refraction is drawn by the content script under
+   the iframe), a rim light that follows the cursor, and a soft shadow. */
 @media (prefers-color-scheme: dark) {
   .root:not([data-theme='light']) {
-    --bg: #1f1f23; --bg-2: rgba(255, 255, 255, 0.08); --tile: rgba(44, 44, 50, 0.96); --text: #f4f4f6; --text-2: #b4b4be; --text-3: #8b8b96;
-    --line: rgba(255, 255, 255, 0.09); --hover: rgba(255, 255, 255, 0.07); --sel: rgba(129, 127, 255, 0.24); --accent: #8b89ff;
-    --glass: rgba(22, 22, 26, 0.5); --glass-strong: rgba(30, 30, 34, 0.86); --sheen: rgba(255, 255, 255, 0.07);
-    --rim: rgba(255, 255, 255, 0.5); --rim-2: rgba(255, 255, 255, 0.18); --glow: rgba(255, 255, 255, 0.05);
+    --bg: #1f1f23; --bg-2: rgba(255, 255, 255, 0.09); --tile: rgba(44, 44, 50, 0.96); --text: #f6f6f8; --text-2: #bdbdc7; --text-3: #94949f;
+    --line: rgba(255, 255, 255, 0.09); --hover: rgba(255, 255, 255, 0.08); --sel: rgba(129, 127, 255, 0.26); --accent: #8b89ff;
+    --glass: rgba(20, 20, 24, 0.55); --glass-strong: rgba(30, 30, 34, 0.88); --sheen: rgba(255, 255, 255, 0.07);
+    --rim: rgba(255, 255, 255, 0.5); --rim-2: rgba(255, 255, 255, 0.2); --rim-hot: rgba(255, 255, 255, 0.9); --glow: rgba(255, 255, 255, 0.05);
+    --tshadow: 0 1px 3px rgba(0, 0, 0, 0.45);
     --glass-shadow: 0 8px 24px rgba(0, 0, 0, 0.36), 0 1px 4px rgba(0, 0, 0, 0.22), 0 0 0 0.5px rgba(0, 0, 0, 0.4);
   }
 }
 .root[data-theme='dark'] {
-  --bg: #1f1f23; --bg-2: rgba(255, 255, 255, 0.08); --tile: rgba(44, 44, 50, 0.96); --text: #f4f4f6; --text-2: #b4b4be; --text-3: #8b8b96;
-  --line: rgba(255, 255, 255, 0.09); --hover: rgba(255, 255, 255, 0.07); --sel: rgba(129, 127, 255, 0.24); --accent: #8b89ff;
-  --glass: rgba(22, 22, 26, 0.5); --glass-strong: rgba(30, 30, 34, 0.86); --sheen: rgba(255, 255, 255, 0.07);
-  --rim: rgba(255, 255, 255, 0.5); --rim-2: rgba(255, 255, 255, 0.18); --glow: rgba(255, 255, 255, 0.05);
-  --glass-shadow: 0 8px 24px rgba(0, 0, 0, 0.36), 0 1px 4px rgba(0, 0, 0, 0.22), 0 0 0 0.5px rgba(0, 0, 0, 0.4);
+  --bg: #1f1f23; --bg-2: rgba(255, 255, 255, 0.09); --tile: rgba(44, 44, 50, 0.96); --text: #f6f6f8; --text-2: #bdbdc7; --text-3: #94949f;
+    --line: rgba(255, 255, 255, 0.09); --hover: rgba(255, 255, 255, 0.08); --sel: rgba(129, 127, 255, 0.26); --accent: #8b89ff;
+    --glass: rgba(20, 20, 24, 0.55); --glass-strong: rgba(30, 30, 34, 0.88); --sheen: rgba(255, 255, 255, 0.07);
+    --rim: rgba(255, 255, 255, 0.5); --rim-2: rgba(255, 255, 255, 0.2); --rim-hot: rgba(255, 255, 255, 0.9); --glow: rgba(255, 255, 255, 0.05);
+    --tshadow: 0 1px 3px rgba(0, 0, 0, 0.45);
+    --glass-shadow: 0 8px 24px rgba(0, 0, 0, 0.36), 0 1px 4px rgba(0, 0, 0, 0.22), 0 0 0 0.5px rgba(0, 0, 0, 0.4);
 }
+/* Adaptive (theme "system", over a page): the glass follows the brightness of the page behind it,
+   like iOS, so text stays readable on light sites even in dark mode. */
+html[data-backdrop='light'] .root.mode-frame:not([data-theme]) {
+  --bg: #fbfbfd; --bg-2: rgba(118, 118, 132, 0.13); --tile: rgba(255, 255, 255, 0.94); --text: #111115; --text-2: #4a4a54; --text-3: #6e6e7a;
+    --line: rgba(0, 0, 0, 0.08); --hover: rgba(0, 0, 0, 0.055); --sel: rgba(94, 92, 230, 0.14); --accent: #5e5ce6;
+    --glass: rgba(255, 255, 255, 0.56); --glass-strong: rgba(250, 250, 252, 0.86); --sheen: rgba(255, 255, 255, 0.3);
+    --rim: rgba(255, 255, 255, 0.95); --rim-2: rgba(255, 255, 255, 0.5); --rim-hot: #fff; --glow: rgba(255, 255, 255, 0.22);
+    --tshadow: 0 0 10px rgba(255, 255, 255, 0.55);
+    --glass-shadow: 0 8px 22px rgba(0, 0, 0, 0.14), 0 1px 4px rgba(0, 0, 0, 0.08), 0 0 0 0.5px rgba(0, 0, 0, 0.08);
+  color-scheme: light;
+}
+html[data-backdrop='dark'] .root.mode-frame:not([data-theme]) {
+  --bg: #1f1f23; --bg-2: rgba(255, 255, 255, 0.09); --tile: rgba(44, 44, 50, 0.96); --text: #f6f6f8; --text-2: #bdbdc7; --text-3: #94949f;
+    --line: rgba(255, 255, 255, 0.09); --hover: rgba(255, 255, 255, 0.08); --sel: rgba(129, 127, 255, 0.26); --accent: #8b89ff;
+    --glass: rgba(20, 20, 24, 0.55); --glass-strong: rgba(30, 30, 34, 0.88); --sheen: rgba(255, 255, 255, 0.07);
+    --rim: rgba(255, 255, 255, 0.5); --rim-2: rgba(255, 255, 255, 0.2); --rim-hot: rgba(255, 255, 255, 0.9); --glow: rgba(255, 255, 255, 0.05);
+    --tshadow: 0 1px 3px rgba(0, 0, 0, 0.45);
+    --glass-shadow: 0 8px 24px rgba(0, 0, 0, 0.36), 0 1px 4px rgba(0, 0, 0, 0.22), 0 0 0 0.5px rgba(0, 0, 0, 0.4);
+  color-scheme: dark;
+}
+html[data-backdrop='light'] .root.mode-frame[data-theme='dark'] { --glass: rgba(20, 20, 24, 0.76); }
+html[data-backdrop='dark'] .root.mode-frame[data-theme='light'] { --glass: rgba(255, 255, 255, 0.74); }
 .root[data-glass='off'] { --glass: var(--bg); --glass-strong: var(--bg); }
 
 * { box-sizing: border-box; }
@@ -84,11 +97,15 @@ html.popup, html.popup body { width: 760px; height: 580px; overflow: hidden; }
   position: relative;
   background: linear-gradient(180deg, var(--sheen), transparent 45%), var(--glass);
   box-shadow: var(--glass-shadow), inset 0 0 22px var(--glow);
+  text-shadow: var(--tshadow);
 }
-/* Rim light: bright where light hits (top-left), a fainter echo on the opposite edge. */
+/* Rim light: a hot spot that follows the cursor (fixed-attachment radial gradient, so one light
+   source lights every piece), and a base light whose angle sways with scrolling (--sa). */
 .glass::after {
-  content: ''; position: absolute; inset: 0; border-radius: inherit; padding: 1px; pointer-events: none;
-  background: linear-gradient(150deg, var(--rim) 0%, transparent 22%, transparent 72%, var(--rim-2) 100%);
+  content: ''; position: absolute; inset: 0; border-radius: inherit; padding: 1.2px; pointer-events: none;
+  background:
+    radial-gradient(circle 240px at var(--mx, -999px) var(--my, -999px), var(--rim-hot), transparent 75%) fixed,
+    linear-gradient(var(--sa, 150deg), var(--rim) 0%, transparent 26%, transparent 70%, var(--rim-2) 100%);
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor; mask-composite: exclude;
 }
@@ -140,13 +157,15 @@ html.popup, html.popup body { width: 760px; height: 580px; overflow: hidden; }
 
 /* ---------- Tile grid ---------- */
 .home { position: relative; flex: 1; min-height: 0; display: flex; }
-.grid-wrap { flex: 1; overflow-y: auto; padding: 0 28px 16px; margin: 0 -28px -16px; scrollbar-width: none; }
+.grid-wrap { flex: 1; overflow-y: auto; padding: 8px 28px 16px; margin: -8px -28px -16px; scrollbar-width: none; }
 .home.has-sheet .grid-wrap { visibility: hidden; }
 .mode-tab .grid-wrap { max-height: min(600px, calc(86vh - 120px)); }
 .mode-frame .grid-wrap { max-height: min(636px, calc(var(--page-h, 100vh) * 0.86 - 114px)); }
 .grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-auto-rows: 150px; grid-auto-flow: row dense; gap: 12px; }
 .tile { border-radius: var(--r); min-width: 0; min-height: 0; user-select: none; }
 .tile-body { position: absolute; inset: 0; overflow: hidden; border-radius: inherit; }
+/* Edit mode: the content steps aside for the size bar instead of being covered by it. */
+.grid.editing .tile-body { bottom: 40px; border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
 .tile.dragging { opacity: 0.35; }
 .ghost { position: fixed; z-index: 50; pointer-events: none; border-radius: var(--r); background: var(--glass-strong); box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25), 0 0 0 2px var(--accent); opacity: 0.9; }
 
@@ -157,10 +176,10 @@ html.popup, html.popup body { width: 760px; height: 580px; overflow: hidden; }
 @keyframes jiggle { from { transform: rotate(-0.6deg); } to { transform: rotate(0.6deg); } }
 @media (prefers-reduced-motion: reduce) { .tile.jiggle { animation: none; outline: 1px dashed var(--accent); } }
 
-.tile-remove { position: absolute; left: -7px; top: -7px; width: 22px; height: 22px; border-radius: 50%; background: #8e8e93; color: #fff; font-size: 17px; line-height: 20px; font-weight: 700; z-index: 3; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3); }
+.tile-remove { position: absolute; left: -6px; top: -6px; width: 22px; height: 22px; border-radius: 50%; background: #8e8e93; color: #fff; font-size: 17px; line-height: 20px; font-weight: 700; z-index: 3; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3); }
 .tile-remove:hover { background: var(--danger); }
-.tile-controls { position: absolute; right: 8px; bottom: 8px; display: flex; gap: 3px; z-index: 3; background: var(--bg); padding: 3px; border-radius: 9px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15); }
-.tile-controls button { min-width: 24px; height: 22px; border-radius: 6px; font-size: 11px; font-weight: 600; color: var(--text-2); display: flex; align-items: center; justify-content: center; }
+.tile-controls { position: absolute; left: 50%; transform: translateX(-50%); bottom: 7px; display: flex; gap: 2px; z-index: 3; background: var(--bg-2); padding: 3px; border-radius: 13px; text-shadow: none; }
+.tile-controls button { min-width: 26px; height: 22px; border-radius: 10px; font-size: 11px; font-weight: 600; color: var(--text-2); display: flex; align-items: center; justify-content: center; }
 .tile-controls button:hover { background: var(--hover); }
 .tile-controls button.on { background: var(--accent); color: #fff; }
 .tile-add { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; color: var(--text-2); background: var(--bg-2); border: 1.5px dashed var(--rim-2); border-radius: var(--r); font-size: 12px; }

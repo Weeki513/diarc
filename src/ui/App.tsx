@@ -8,7 +8,7 @@ import { cachedSuggestions, webSuggestions } from './suggest';
 import { isLight, siteTint } from './tint';
 import { BUILTIN_ENGINES, engineUrl, matchEngine, type Engine } from '../shared/engines';
 import { Grid } from './Grid';
-import { startGlassReporter } from './glass';
+import { startGlassReporter, startLight } from './glass';
 import { Gallery, TileSettings } from './Panels';
 import { IconBolt, IconClock, IconGlobe, IconGrid, IconSearch, IconStar, IconTab, IconX } from './icons';
 
@@ -112,6 +112,7 @@ export function App(props: { initial: Snapshot }) {
       });
       if (panel) ro.observe(panel);
       const glass = panel ? startGlassReporter(panel as HTMLElement) : null;
+      startLight();
       parent.postMessage({ diarc: 'ready' }, '*');
       return () => {
         window.removeEventListener('message', onMsg);
@@ -236,9 +237,10 @@ export function App(props: { initial: Snapshot }) {
 
   const onInputKey = (e: KeyboardEvent) => {
     const n = results.length;
-    if (e.key === 'Tab' && !e.shiftKey && (candidate || scope)) {
+    if (e.key === 'Tab') {
+      // Tab never moves focus out of the field: it only starts site search.
       e.preventDefault();
-      if (candidate) {
+      if (candidate && !e.shiftKey) {
         setScope(candidate);
         setQuery('');
       }
@@ -273,6 +275,12 @@ export function App(props: { initial: Snapshot }) {
       const target = e.target as HTMLElement;
       const inField = target !== input.current && /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName);
       const cur = live.current;
+      if (e.key === 'Tab' && target !== input.current && !target.closest?.('.sheet')) {
+        // Keep keyboard focus in the search field instead of walking through buttons.
+        e.preventDefault();
+        if (!inField) input.current?.focus();
+        return;
+      }
       if (e.key === 'Escape') {
         e.preventDefault();
         if (inField) {

@@ -26,7 +26,7 @@ export const GLASS_CSS = `
   @keyframes glass-in { from { opacity: 0; } }
   .plate { position: absolute; left: 0; top: 0; will-change: transform; }
   .glass-clip { position: absolute; overflow: hidden; }
-  .haze { position: absolute; backdrop-filter: blur(6px) saturate(1.15);
+  .haze { position: absolute; backdrop-filter: blur(2.5px) saturate(1.1);
     -webkit-mask: linear-gradient(90deg, transparent, #000 36px, #000 calc(100% - 36px), transparent),
                   linear-gradient(180deg, transparent, #000 36px, #000 calc(100% - 36px), transparent);
     -webkit-mask-composite: source-in; mask-composite: intersect; }
@@ -41,7 +41,7 @@ function lensMap(w: number, h: number, r: number): string {
   const img = ctx.createImageData(w, h);
   const px32 = new Uint32Array(img.data.buffer);
   px32.fill(0xff808080); // ABGR little-endian: neutral grey, opaque
-  const bezel = Math.max(6, Math.min(26, r * 1.1, h / 2.2, w / 2.2));
+  const bezel = Math.max(6, Math.min(34, r * 1.4, h / 2.2, w / 2.2));
   const hw = w / 2, hh = h / 2;
   const d = img.data;
   for (let y = 0; y < h; y++) {
@@ -184,24 +184,24 @@ export class GlassLayer {
     const f = document.createElementNS(SVG_NS, 'filter');
     f.id = id;
     for (const [k, v] of Object.entries({ x: '0', y: '0', width: `${w}`, height: `${h}`, filterUnits: 'userSpaceOnUse', 'color-interpolation-filters': 'sRGB' })) f.setAttribute(k, v);
-    const scale = Math.min(70, Math.max(24, Math.min(w, h) * 0.45));
+    const scale = Math.min(110, Math.max(34, Math.min(w, h) * 0.65));
     // Keep one colour channel of a displaced copy; opaque, so the arithmetic sum keeps all three.
     const channel = (c: 0 | 1 | 2) => {
       const rows = [0, 1, 2].map((k) => (k === c ? ['1 0 0 0 0', '0 1 0 0 0', '0 0 1 0 0'][k] : '0 0 0 0 0'));
       return [...rows, '0 0 0 0 1'].join(' ');
     };
     f.innerHTML = `
-      <feGaussianBlur in="SourceGraphic" stdDeviation="4" edgeMode="duplicate" result="b"/>
+      <feGaussianBlur in="SourceGraphic" stdDeviation="1.1" edgeMode="duplicate" result="b"/>
       <feImage href="${lensMap(w, h, r)}" x="0" y="0" width="${w}" height="${h}" preserveAspectRatio="none" result="m"/>
       <feDisplacementMap in="b" in2="m" scale="${scale}" xChannelSelector="R" yChannelSelector="G" result="dr"/>
-      <feDisplacementMap in="b" in2="m" scale="${scale * 0.9}" xChannelSelector="R" yChannelSelector="G" result="dg"/>
-      <feDisplacementMap in="b" in2="m" scale="${scale * 0.8}" xChannelSelector="R" yChannelSelector="G" result="db"/>
+      <feDisplacementMap in="b" in2="m" scale="${scale * 0.84}" xChannelSelector="R" yChannelSelector="G" result="dg"/>
+      <feDisplacementMap in="b" in2="m" scale="${scale * 0.68}" xChannelSelector="R" yChannelSelector="G" result="db"/>
       <feColorMatrix in="dr" type="matrix" values="${channel(0)}" result="r"/>
       <feColorMatrix in="dg" type="matrix" values="${channel(1)}" result="g"/>
       <feColorMatrix in="db" type="matrix" values="${channel(2)}" result="bl"/>
       <feComposite in="r" in2="g" operator="arithmetic" k2="1" k3="1" result="rg"/>
       <feComposite in="rg" in2="bl" operator="arithmetic" k2="1" k3="1" result="rgb"/>
-      <feColorMatrix in="rgb" type="saturate" values="1.6"/>`;
+      <feColorMatrix in="rgb" type="saturate" values="1.45"/>`;
     this.svg.append(f);
     this.defs.set(key, f);
     return id;

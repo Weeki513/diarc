@@ -64,3 +64,40 @@ export function startGlassReporter(panel: HTMLElement): { stop(): void; kick(): 
     },
   };
 }
+
+/**
+ * Live rim light: the bright spot on the glass edges follows the cursor (over the bar and over
+ * the page, forwarded by the content script) and the light angle sways as the page or the
+ * widgets scroll. Plus adaptive contrast: the content script reports how bright the page behind
+ * is, and the glass switches between light and dark tint.
+ */
+export function startLight(): void {
+  const html = document.documentElement;
+  let pageScroll = 0;
+  let innerScroll = 0;
+  let raf = 0;
+  let mx = -999, my = -999;
+  const apply = () => {
+    raf = 0;
+    html.style.setProperty('--mx', `${mx}px`);
+    html.style.setProperty('--my', `${my}px`);
+    html.style.setProperty('--sa', `${(150 + 38 * Math.sin((pageScroll + innerScroll) / 260)).toFixed(1)}deg`);
+  };
+  const queue = () => {
+    if (!raf) raf = requestAnimationFrame(apply);
+  };
+  window.addEventListener('mousemove', (e: MouseEvent) => { mx = e.clientX; my = e.clientY; queue(); }, { passive: true });
+  document.addEventListener('scroll', (e) => {
+    const t = e.target as HTMLElement;
+    if (t?.classList?.contains('grid-wrap') || t?.classList?.contains('results')) innerScroll = t.scrollTop;
+    queue();
+  }, { capture: true, passive: true });
+  addEventListener('message', (e) => {
+    if (e.source !== parent) return;
+    const d = e.data as { diarc?: string; x?: number; y?: number; luma?: number };
+    if (d?.diarc === 'pointer') { mx = d.x!; my = d.y!; queue(); }
+    else if (d?.diarc === 'scroll') { pageScroll = d.y!; queue(); }
+    else if (d?.diarc === 'backdrop') html.dataset.backdrop = d.luma! > 0.55 ? 'light' : 'dark';
+  });
+  apply();
+}

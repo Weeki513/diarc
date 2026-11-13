@@ -36,7 +36,7 @@ type W = Window & { __diarc?: boolean };
   const CSS = `
     :host { all: initial; position: fixed; inset: 0; z-index: 2147483647; display: none; pointer-events: none; }
     iframe { position: absolute; left: 50%; top: calc(14vh - 40px); transform: translateX(-50%); width: min(880px, 100vw); height: 120px;
-      border: 0; background: transparent; color-scheme: normal; pointer-events: auto; }
+      border: 0; background: transparent; color-scheme: light; pointer-events: auto; }
     .shell { position: absolute; inset: 0; background: transparent; pointer-events: none; font: 16px -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif; }
     .bar { position: absolute; left: 50%; top: 14vh; transform: translateX(-50%); width: min(760px, calc(100vw - 32px)); height: 58px; box-sizing: border-box; pointer-events: auto;
       border-radius: 29px; background: rgba(255,255,255,.55); backdrop-filter: blur(14px) saturate(1.7);
@@ -102,12 +102,72 @@ type W = Window & { __diarc?: boolean };
     post({ diarc: 'viewport', h: window.innerHeight });
   }
 
+  // ---- While open: feed the bar the page's brightness (adaptive glass), cursor and scroll (live rim light) ----
+  let liveRaf = 0;
+  let lastPointer: { x: number; y: number } | null = null;
+  let lastLuma = -1;
+  let lumaAt = 0;
+
+  /** Average brightness of what is behind the bar, from the backgrounds of the elements there. */
+  function backdropLuma(): number {
+    const r = frame!.getBoundingClientRect();
+    const xs = [0.1, 0.3, 0.5, 0.7, 0.9].map((k) => r.left + r.width * k);
+    const ys = [0.1, 0.35, 0.6, 0.85].map((k) => r.top + Math.min(r.height, innerHeight - r.top) * k);
+    let sum = 0, n = 0;
+    for (const x of xs) for (const y of ys) {
+      let rgb: number[] | null = null;
+      for (const el of document.elementsFromPoint(x, y)) {
+        if (el === host) continue;
+        if (el instanceof HTMLImageElement || el instanceof HTMLVideoElement || el instanceof HTMLCanvasElement) { rgb = [110, 110, 110]; break; }
+        const m = /rgba?\(([\d.]+),\s*([\d.]+),\s*([\d.]+)(?:,\s*([\d.]+))?/.exec(getComputedStyle(el).backgroundColor);
+        if (m && (m[4] === undefined || +m[4] > 0.5)) { rgb = [+m[1], +m[2], +m[3]]; break; }
+      }
+      if (!rgb) rgb = matchMedia('(prefers-color-scheme: dark)').matches && getComputedStyle(document.documentElement).colorScheme.includes('dark') ? [20, 20, 20] : [255, 255, 255];
+      sum += (0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2]) / 255;
+      n++;
+    }
+    return n ? sum / n : 1;
+  }
+
+  function sendLive(): void {
+    liveRaf = 0;
+    if (!open || !frame) return;
+    const r = frame.getBoundingClientRect();
+    if (lastPointer) post({ diarc: 'pointer', x: lastPointer.x - r.left, y: lastPointer.y - r.top });
+    post({ diarc: 'scroll', y: scrollY });
+    const now = performance.now();
+    if (now - lumaAt > 180) {
+      lumaAt = now;
+      const l = backdropLuma();
+      if (Math.abs(l - lastLuma) > 0.04) post({ diarc: 'backdrop', luma: (lastLuma = l) });
+    }
+  }
+  const queueLive = () => {
+    if (!liveRaf) liveRaf = requestAnimationFrame(sendLive);
+  };
+  const onPointer = (e: MouseEvent) => {
+    lastPointer = { x: e.clientX, y: e.clientY };
+    queueLive();
+  };
+  function live(on: boolean): void {
+    const f = on ? addEventListener : removeEventListener;
+    f('mousemove', onPointer as EventListener, { capture: true, passive: true } as AddEventListenerOptions);
+    f('scroll', queueLive, { capture: true, passive: true } as AddEventListenerOptions);
+    if (on) {
+      lastLuma = -1;
+      lumaAt = 0;
+      queueLive();
+      setTimeout(queueLive, 250); // after the first glass layout
+    }
+  }
+
   function reveal(): void {
     const text = shellInput?.value ?? '';
     shell?.remove();
     shell = shellInput = null;
     frame!.style.visibility = 'visible';
     glass?.flash();
+    live(true);
     frame!.focus();
     sendViewport();
     post({ diarc: 'open', text });
@@ -130,6 +190,7 @@ type W = Window & { __diarc?: boolean };
     host!.style.display = 'none';
     if (frame) frame.style.visibility = 'hidden';
     glass?.clear();
+    live(false);
     shell?.remove();
     shell = shellInput = null;
     if (lastFocus instanceof HTMLElement) lastFocus.focus({ preventScroll: true });
