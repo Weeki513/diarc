@@ -5,6 +5,7 @@ import { DEFAULT_LAYOUT, DEFAULT_SETTINGS, K, getSettings, saveLayout, saveSetti
 import './styles.css';
 import './options.css';
 import { BUILTIN_ENGINES, type Engine } from '../shared/engines';
+import { GlassSection } from './options-glass';
 
 type Status = Record<'google' | 'ticktick', { connected: boolean; scopes?: string[] }>;
 
@@ -83,14 +84,6 @@ function Options() {
           </select>
         </label>
         <label class="row">
-          <span>Стекло<small>«Жидкое» преломляет страницу у краёв, как в iOS. Если на слабом железе подтормаживает, выберите «Матовое».</small></span>
-          <select value={s.glass} onChange={(e) => update({ glass: (e.target as HTMLSelectElement).value as Settings['glass'] })}>
-            <option value="liquid">Жидкое</option>
-            <option value="frost">Матовое</option>
-            <option value="off">Без стекла</option>
-          </select>
-        </label>
-        <label class="row">
           <span>Подсказки поиска<small>Как в адресной строке: введённый текст отправляется сервису подсказок.</small></span>
           <select value={s.suggest} onChange={(e) => update({ suggest: (e.target as HTMLSelectElement).value as Settings['suggest'] })}>
             <option value="google">Google</option>
@@ -99,6 +92,8 @@ function Options() {
           </select>
         </label>
       </section>
+
+      <GlassSection settings={s} update={update} />
 
       <Engines engines={s.engines ?? []} onChange={(engines) => update({ engines })} />
 

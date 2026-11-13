@@ -2,7 +2,7 @@
 :root {
   --bg: #fbfbfd; --bg-2: rgba(118, 118, 132, 0.13); --tile: rgba(255, 255, 255, 0.94); --text: #111115; --text-2: #4a4a54; --text-3: #6e6e7a;
     --line: rgba(0, 0, 0, 0.08); --hover: rgba(0, 0, 0, 0.055); --sel: rgba(94, 92, 230, 0.14); --accent: #5e5ce6;
-    --glass: rgba(255, 255, 255, 0.56); --glass-strong: rgba(250, 250, 252, 0.86); --sheen: rgba(255, 255, 255, 0.3);
+    --glass: rgba(255, 255, 255, var(--ta, 0.56)); --glass-strong: rgba(250, 250, 252, 0.86); --sheen: rgba(255, 255, 255, 0.3);
     --rim: rgba(255, 255, 255, 0.95); --rim-2: rgba(255, 255, 255, 0.5); --rim-hot: #fff; --glow: rgba(255, 255, 255, 0.22);
     --tshadow: 0 0 10px rgba(255, 255, 255, 0.55);
     --glass-shadow: 0 8px 22px rgba(0, 0, 0, 0.14), 0 1px 4px rgba(0, 0, 0, 0.08), 0 0 0 0.5px rgba(0, 0, 0, 0.08);
@@ -18,7 +18,7 @@
   .root:not([data-theme='light']) {
     --bg: #1f1f23; --bg-2: rgba(255, 255, 255, 0.09); --tile: rgba(44, 44, 50, 0.96); --text: #f6f6f8; --text-2: #bdbdc7; --text-3: #94949f;
     --line: rgba(255, 255, 255, 0.09); --hover: rgba(255, 255, 255, 0.08); --sel: rgba(129, 127, 255, 0.26); --accent: #8b89ff;
-    --glass: rgba(20, 20, 24, 0.55); --glass-strong: rgba(30, 30, 34, 0.88); --sheen: rgba(255, 255, 255, 0.07);
+    --glass: rgba(20, 20, 24, var(--ta, 0.55)); --glass-strong: rgba(30, 30, 34, 0.88); --sheen: rgba(255, 255, 255, 0.07);
     --rim: rgba(255, 255, 255, 0.5); --rim-2: rgba(255, 255, 255, 0.2); --rim-hot: rgba(255, 255, 255, 0.9); --glow: rgba(255, 255, 255, 0.05);
     --tshadow: 0 1px 3px rgba(0, 0, 0, 0.45);
     --glass-shadow: 0 8px 24px rgba(0, 0, 0, 0.36), 0 1px 4px rgba(0, 0, 0, 0.22), 0 0 0 0.5px rgba(0, 0, 0, 0.4);
@@ -27,7 +27,7 @@
 .root[data-theme='dark'] {
   --bg: #1f1f23; --bg-2: rgba(255, 255, 255, 0.09); --tile: rgba(44, 44, 50, 0.96); --text: #f6f6f8; --text-2: #bdbdc7; --text-3: #94949f;
     --line: rgba(255, 255, 255, 0.09); --hover: rgba(255, 255, 255, 0.08); --sel: rgba(129, 127, 255, 0.26); --accent: #8b89ff;
-    --glass: rgba(20, 20, 24, 0.55); --glass-strong: rgba(30, 30, 34, 0.88); --sheen: rgba(255, 255, 255, 0.07);
+    --glass: rgba(20, 20, 24, var(--ta, 0.55)); --glass-strong: rgba(30, 30, 34, 0.88); --sheen: rgba(255, 255, 255, 0.07);
     --rim: rgba(255, 255, 255, 0.5); --rim-2: rgba(255, 255, 255, 0.2); --rim-hot: rgba(255, 255, 255, 0.9); --glow: rgba(255, 255, 255, 0.05);
     --tshadow: 0 1px 3px rgba(0, 0, 0, 0.45);
     --glass-shadow: 0 8px 24px rgba(0, 0, 0, 0.36), 0 1px 4px rgba(0, 0, 0, 0.22), 0 0 0 0.5px rgba(0, 0, 0, 0.4);
@@ -37,7 +37,7 @@
 html[data-backdrop='light'] .root.mode-frame:not([data-theme]) {
   --bg: #fbfbfd; --bg-2: rgba(118, 118, 132, 0.13); --tile: rgba(255, 255, 255, 0.94); --text: #111115; --text-2: #4a4a54; --text-3: #6e6e7a;
     --line: rgba(0, 0, 0, 0.08); --hover: rgba(0, 0, 0, 0.055); --sel: rgba(94, 92, 230, 0.14); --accent: #5e5ce6;
-    --glass: rgba(255, 255, 255, 0.56); --glass-strong: rgba(250, 250, 252, 0.86); --sheen: rgba(255, 255, 255, 0.3);
+    --glass: rgba(255, 255, 255, var(--ta, 0.56)); --glass-strong: rgba(250, 250, 252, 0.86); --sheen: rgba(255, 255, 255, 0.3);
     --rim: rgba(255, 255, 255, 0.95); --rim-2: rgba(255, 255, 255, 0.5); --rim-hot: #fff; --glow: rgba(255, 255, 255, 0.22);
     --tshadow: 0 0 10px rgba(255, 255, 255, 0.55);
     --glass-shadow: 0 8px 22px rgba(0, 0, 0, 0.14), 0 1px 4px rgba(0, 0, 0, 0.08), 0 0 0 0.5px rgba(0, 0, 0, 0.08);
@@ -46,14 +46,14 @@ html[data-backdrop='light'] .root.mode-frame:not([data-theme]) {
 html[data-backdrop='dark'] .root.mode-frame:not([data-theme]) {
   --bg: #1f1f23; --bg-2: rgba(255, 255, 255, 0.09); --tile: rgba(44, 44, 50, 0.96); --text: #f6f6f8; --text-2: #bdbdc7; --text-3: #94949f;
     --line: rgba(255, 255, 255, 0.09); --hover: rgba(255, 255, 255, 0.08); --sel: rgba(129, 127, 255, 0.26); --accent: #8b89ff;
-    --glass: rgba(20, 20, 24, 0.55); --glass-strong: rgba(30, 30, 34, 0.88); --sheen: rgba(255, 255, 255, 0.07);
+    --glass: rgba(20, 20, 24, var(--ta, 0.55)); --glass-strong: rgba(30, 30, 34, 0.88); --sheen: rgba(255, 255, 255, 0.07);
     --rim: rgba(255, 255, 255, 0.5); --rim-2: rgba(255, 255, 255, 0.2); --rim-hot: rgba(255, 255, 255, 0.9); --glow: rgba(255, 255, 255, 0.05);
     --tshadow: 0 1px 3px rgba(0, 0, 0, 0.45);
     --glass-shadow: 0 8px 24px rgba(0, 0, 0, 0.36), 0 1px 4px rgba(0, 0, 0, 0.22), 0 0 0 0.5px rgba(0, 0, 0, 0.4);
   color-scheme: dark;
 }
-html[data-backdrop='light'] .root.mode-frame[data-theme='dark'] { --glass: rgba(20, 20, 24, 0.76); }
-html[data-backdrop='dark'] .root.mode-frame[data-theme='light'] { --glass: rgba(255, 255, 255, 0.74); }
+html[data-backdrop='light'] .root.mode-frame[data-theme='dark'] { --glass: rgba(20, 20, 24, min(0.95, calc(var(--ta, 0.55) + 0.2))); }
+html[data-backdrop='dark'] .root.mode-frame[data-theme='light'] { --glass: rgba(255, 255, 255, min(0.95, calc(var(--ta, 0.55) + 0.2))); }
 .root[data-glass='off'] { --glass: var(--bg); --glass-strong: var(--bg); }
 
 * { box-sizing: border-box; }
@@ -99,13 +99,18 @@ html.popup, html.popup body { width: 760px; height: 580px; overflow: hidden; }
   box-shadow: var(--glass-shadow), inset 0 0 22px var(--glow);
   text-shadow: var(--tshadow);
 }
-/* Rim light: a hot spot that follows the cursor (fixed-attachment radial gradient, so one light
-   source lights every piece), and a base light whose angle sways with scrolling (--sa). */
+/* Rim light: one light field for all pieces (fixed attachment = viewport coordinates), so light
+   flows from piece to piece: a key light drifting with scroll, a cursor light on a spring and an
+   opening ripple from the search field. See startLight() in glass.ts. */
 .glass::after {
-  content: ''; position: absolute; inset: 0; border-radius: inherit; padding: 1.2px; pointer-events: none;
+  content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  padding: calc(0.6px + 0.8px * var(--rim-k, 1));
+  opacity: min(1, var(--rim-k, 1));
   background:
-    radial-gradient(circle 240px at var(--mx, -999px) var(--my, -999px), var(--rim-hot), transparent 75%) fixed,
-    linear-gradient(var(--sa, 150deg), var(--rim) 0%, transparent 26%, transparent 70%, var(--rim-2) 100%);
+    radial-gradient(circle var(--light-r, 260px) at var(--lx, -999px) var(--ly, -999px), var(--rim-hot), transparent 72%) fixed,
+    radial-gradient(circle at var(--wx, 50%) var(--wy, 0px), transparent calc(var(--wr, -200px) - 70px), rgba(255, 255, 255, var(--wa, 0)) var(--wr, -200px), transparent calc(var(--wr, -200px) + 70px)) fixed,
+    radial-gradient(circle 900px at var(--kx, 30%) var(--ky, -160px), var(--rim), transparent 75%) fixed,
+    linear-gradient(var(--rim-2), var(--rim-2));
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor; mask-composite: exclude;
 }

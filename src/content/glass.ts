@@ -14,6 +14,10 @@
 
 export type GlassMode = 'liquid' | 'frost' | 'off';
 
+/** Same shape as GlassTune in shared/storage (kept local so the content script stays dependency-free). */
+export interface Tune { blur: number; refraction: number; bezel: number; chroma: number; saturation: number; haze: number }
+export const DEFAULT_TUNE: Tune = { blur: 1.1, refraction: 1, bezel: 34, chroma: 0.32, saturation: 1.45, haze: 2.5 };
+
 export interface GlassRect { x: number; y: number; w: number; h: number; r: number; c?: 0 | 1 }
 export interface GlassMsg { plates: GlassRect[]; clip: { x: number; y: number; w: number; h: number } | null }
 
@@ -26,14 +30,14 @@ export const GLASS_CSS = `
   @keyframes glass-in { from { opacity: 0; } }
   .plate { position: absolute; left: 0; top: 0; will-change: transform; }
   .glass-clip { position: absolute; overflow: hidden; }
-  .haze { position: absolute; backdrop-filter: blur(2.5px) saturate(1.1);
+  .haze { position: absolute; backdrop-filter: blur(var(--haze, 2.5px)) saturate(1.1);
     -webkit-mask: linear-gradient(90deg, transparent, #000 36px, #000 calc(100% - 36px), transparent),
                   linear-gradient(180deg, transparent, #000 36px, #000 calc(100% - 36px), transparent);
     -webkit-mask-composite: source-in; mask-composite: intersect; }
 `;
 
 /** Lens map: R/G hold the x/y displacement (128 = none) for a rounded rect of w×h, radius r. */
-function lensMap(w: number, h: number, r: number): string {
+function lensMap(w: number, h: number, r: number, bezelMax: number): string {
   const canvas = document.createElement('canvas');
   canvas.width = w;
   canvas.height = h;
@@ -41,7 +45,7 @@ function lensMap(w: number, h: number, r: number): string {
   const img = ctx.createImageData(w, h);
   const px32 = new Uint32Array(img.data.buffer);
   px32.fill(0xff808080); // ABGR little-endian: neutral grey, opaque
-  const bezel = Math.max(6, Math.min(34, r * 1.4, h / 2.2, w / 2.2));
+  const bezel = Math.max(6, Math.min(bezelMax, Math.max(r * 1.4, 10), h / 2.2, w / 2.2));
   const hw = w / 2, hh = h / 2;
   const d = img.data;
   for (let y = 0; y < h; y++) {
@@ -83,7 +87,9 @@ export class GlassLayer {
   private pool: HTMLDivElement[] = [];
   private seq = 0;
 
-  constructor(root: ShadowRoot, private mode: GlassMode) {
+  private last: { msg: GlassMsg; origin: { x: number; y: number } } | null = null;
+
+  constructor(root: ParentNode, private mode: GlassMode, private tune: Tune = DEFAULT_TUNE) {
     this.svg = document.createElementNS(SVG_NS, 'svg');
     this.svg.setAttribute('width', '0');
     this.svg.setAttribute('height', '0');
@@ -96,6 +102,15 @@ export class GlassLayer {
     this.clip.className = 'glass-clip';
     this.el.append(this.svg, this.haze, this.clip);
     root.append(this.el);
+    this.el.style.setProperty('--haze', `${tune.haze}px`);
+  }
+
+  setTune(tune: Tune): void {
+    this.tune = { ...DEFAULT_TUNE, ...tune };
+    this.el.style.setProperty('--haze', `${this.tune.haze}px`);
+    for (const f of this.defs.values()) f.remove();
+    this.defs.clear();
+    if (this.last) this.update(this.last.msg, this.last.origin);
   }
 
   setMode(mode: GlassMode): void {
@@ -118,6 +133,7 @@ export class GlassLayer {
   /** origin: the iframe's position in the page viewport; rects are in iframe coordinates. */
   update(msg: GlassMsg, origin: { x: number; y: number }): void {
     if (this.mode === 'off') return this.clear();
+    this.last = { msg, origin };
     const { plates, clip } = msg;
     const used = new Set<string>();
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
@@ -184,24 +200,26 @@ export class GlassLayer {
     const f = document.createElementNS(SVG_NS, 'filter');
     f.id = id;
     for (const [k, v] of Object.entries({ x: '0', y: '0', width: `${w}`, height: `${h}`, filterUnits: 'userSpaceOnUse', 'color-interpolation-filters': 'sRGB' })) f.setAttribute(k, v);
-    const scale = Math.min(110, Math.max(34, Math.min(w, h) * 0.65));
+    const t = this.tune;
+    const scale = Math.min(110, Math.max(34, Math.min(w, h) * 0.65)) * t.refraction;
+    const c = Math.max(0, Math.min(0.9, t.chroma));
     // Keep one colour channel of a displaced copy; opaque, so the arithmetic sum keeps all three.
     const channel = (c: 0 | 1 | 2) => {
       const rows = [0, 1, 2].map((k) => (k === c ? ['1 0 0 0 0', '0 1 0 0 0', '0 0 1 0 0'][k] : '0 0 0 0 0'));
       return [...rows, '0 0 0 0 1'].join(' ');
     };
     f.innerHTML = `
-      <feGaussianBlur in="SourceGraphic" stdDeviation="1.1" edgeMode="duplicate" result="b"/>
-      <feImage href="${lensMap(w, h, r)}" x="0" y="0" width="${w}" height="${h}" preserveAspectRatio="none" result="m"/>
+      <feGaussianBlur in="SourceGraphic" stdDeviation="${t.blur}" edgeMode="duplicate" result="b"/>
+      <feImage href="${lensMap(w, h, r, t.bezel)}" x="0" y="0" width="${w}" height="${h}" preserveAspectRatio="none" result="m"/>
       <feDisplacementMap in="b" in2="m" scale="${scale}" xChannelSelector="R" yChannelSelector="G" result="dr"/>
-      <feDisplacementMap in="b" in2="m" scale="${scale * 0.84}" xChannelSelector="R" yChannelSelector="G" result="dg"/>
-      <feDisplacementMap in="b" in2="m" scale="${scale * 0.68}" xChannelSelector="R" yChannelSelector="G" result="db"/>
+      <feDisplacementMap in="b" in2="m" scale="${scale * (1 - c / 2)}" xChannelSelector="R" yChannelSelector="G" result="dg"/>
+      <feDisplacementMap in="b" in2="m" scale="${scale * (1 - c)}" xChannelSelector="R" yChannelSelector="G" result="db"/>
       <feColorMatrix in="dr" type="matrix" values="${channel(0)}" result="r"/>
       <feColorMatrix in="dg" type="matrix" values="${channel(1)}" result="g"/>
       <feColorMatrix in="db" type="matrix" values="${channel(2)}" result="bl"/>
       <feComposite in="r" in2="g" operator="arithmetic" k2="1" k3="1" result="rg"/>
       <feComposite in="rg" in2="bl" operator="arithmetic" k2="1" k3="1" result="rgb"/>
-      <feColorMatrix in="rgb" type="saturate" values="1.45"/>`;
+      <feColorMatrix in="rgb" type="saturate" values="${t.saturation}"/>`;
     this.svg.append(f);
     this.defs.set(key, f);
     return id;

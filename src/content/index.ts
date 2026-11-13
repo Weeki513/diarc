@@ -10,7 +10,7 @@
  *    once the iframe reports `ready`.
  *  - Iframes of tabs hidden for 5 minutes are dropped to keep memory low.
  */
-import { GLASS_CSS, GlassLayer, type GlassMode, type GlassMsg } from './glass';
+import { GLASS_CSS, GlassLayer, type GlassMode, type GlassMsg, type Tune } from './glass';
 
 type W = Window & { __diarc?: boolean };
 
@@ -32,6 +32,7 @@ type W = Window & { __diarc?: boolean };
   let unloadTimer: number | undefined;
   let glass: GlassLayer | null = null;
   let glassMode: GlassMode = 'liquid';
+  let glassTune: Tune | undefined;
 
   const CSS = `
     :host { all: initial; position: fixed; inset: 0; z-index: 2147483647; display: none; pointer-events: none; }
@@ -57,7 +58,7 @@ type W = Window & { __diarc?: boolean };
     const style = document.createElement('style');
     style.textContent = CSS;
     root.append(style);
-    glass = new GlassLayer(root, glassMode);
+    glass = new GlassLayer(root, glassMode, glassTune);
     // Keep page shortcuts from seeing keys typed into the shell.
     for (const t of ['keydown', 'keyup', 'keypress']) host.addEventListener(t, (e) => e.stopPropagation());
     // The page stays interactive around the bar (scroll, select); a click outside closes it.
@@ -236,17 +237,21 @@ type W = Window & { __diarc?: boolean };
 
   // ---- Prewarm / unload ----
   let prewarm = true;
-  type S = { prewarm?: boolean; glass?: GlassMode } | undefined;
+  type S = { prewarm?: boolean; glass?: GlassMode; glassTune?: Tune } | undefined;
   chrome.storage.local.get('settings').then((r) => {
     prewarm = (r.settings as S)?.prewarm ?? true;
     glassMode = (r.settings as S)?.glass ?? 'liquid';
+    glassTune = (r.settings as S)?.glassTune;
     glass?.setMode(glassMode);
+    if (glassTune) glass?.setTune(glassTune);
     schedulePrewarm();
   });
   chrome.storage.onChanged.addListener((c, area) => {
     if (area !== 'local' || !c.settings) return;
-    glassMode = (c.settings.newValue as S)?.glass ?? 'liquid';
+    const next = c.settings.newValue as S;
+    glassMode = next?.glass ?? 'liquid';
     glass?.setMode(glassMode);
+    if (next?.glassTune && JSON.stringify(next.glassTune) !== JSON.stringify(glassTune)) glass?.setTune((glassTune = next.glassTune));
   });
 
   function schedulePrewarm(): void {

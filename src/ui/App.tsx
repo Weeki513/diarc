@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { bg } from '../shared/messages';
+import { DEFAULT_GLASS_TUNE, type GlassTune } from '../shared/storage';
 import { builtinCommands } from './commands';
 import { MODE, TAB_ORIGIN, closeBar, favicon, focusTab, looksLikeUrl, openUrl, setCloser, webSearch } from './env';
 import { useSnapshot, type Snapshot } from './hooks';
@@ -95,6 +96,7 @@ export function App(props: { initial: Snapshot }) {
             input.current?.focus();
             document.querySelector('.grid-wrap')?.scrollTo(0, 0);
             glass?.kick();
+            light.wave();
           });
         } else if (e.data?.diarc === 'viewport') {
           document.documentElement.style.setProperty('--page-h', `${e.data.h}px`);
@@ -112,7 +114,7 @@ export function App(props: { initial: Snapshot }) {
       });
       if (panel) ro.observe(panel);
       const glass = panel ? startGlassReporter(panel as HTMLElement) : null;
-      startLight();
+      const light = startLight();
       parent.postMessage({ diarc: 'ready' }, '*');
       return () => {
         window.removeEventListener('message', onMsg);
@@ -325,6 +327,7 @@ export function App(props: { initial: Snapshot }) {
       class={`root mode-${MODE} ${visible ? 'shown' : ''}`}
       data-theme={themeAttr}
       data-glass={snap.settings.glass ?? 'liquid'}
+      style={tuneVars(snap.settings.glassTune)}
       onMouseDown={(e) => {
         if (e.target === e.currentTarget && MODE === 'frame') closeBar();
       }}
@@ -429,6 +432,12 @@ export function App(props: { initial: Snapshot }) {
       </div>
     </div>
   );
+}
+
+/** Glass tuning → CSS variables (the refraction part is applied by the content script). */
+export function tuneVars(t: Partial<GlassTune> | undefined): Record<string, string> {
+  const v = { ...DEFAULT_GLASS_TUNE, ...t };
+  return { '--ta': String(v.tint), '--rim-k': String(v.rim), '--light-r': `${v.light}px` };
 }
 
 function ResultIcon({ r }: { r: Result }) {

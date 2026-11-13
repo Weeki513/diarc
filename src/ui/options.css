@@ -27,3 +27,27 @@ footer { margin-top: 20px; text-align: center; }
 .engine-add { display: grid; grid-template-columns: 1fr 90px 2fr auto; gap: 8px; }
 .engine-add input { border: 1px solid var(--line); background: var(--tile); border-radius: 8px; padding: 6px 9px; outline: none; font-size: 13px; }
 .engine-add input:focus { border-color: var(--accent); }
+
+/* Glass preview */
+.gp { position: relative; height: 300px; border-radius: 14px; overflow: hidden; isolation: isolate; }
+.gp-page { position: absolute; inset: 0; padding: 22px; background: linear-gradient(135deg, #e0e7ff, #fdf2f8); color: #111; }
+.gp.scene-dark .gp-page { background: #0e0f13; color: #f2f2f4; }
+.gp-blocks { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+.gp-blocks i { height: 110px; border-radius: 10px; background: #ff5f57; }
+.gp-blocks i:nth-child(2) { background: #28c840; } .gp-blocks i:nth-child(3) { background: repeating-linear-gradient(45deg, #111 0 8px, #fff 8px 16px); }
+.gp-blocks i:nth-child(4) { background: #0a84ff; } .gp-blocks i:nth-child(5) { background: #bf5af2; }
+.gp-page p { font-size: 30px; font-weight: 700; line-height: 1.15; margin: 14px 0 0; }
+.gp-layer { position: absolute; inset: 0; pointer-events: none; }
+.gp-layer .glass-layer { position: absolute; inset: 0; }
+.root.preview { position: absolute; inset: 0; padding: 26px 40px; display: flex; flex-direction: column; gap: 10px; background: none !important; color-scheme: normal; }
+.root.preview .glass { backdrop-filter: none !important; }
+.gp-pill { height: 52px; border-radius: 26px; display: flex; align-items: center; padding: 0 22px; color: var(--text-3); font-size: 17px; }
+.gp-tiles { display: grid; grid-template-columns: 2fr 1fr; gap: 10px; }
+.gp-tile { height: 150px; border-radius: 22px; padding: 14px; display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: var(--text); }
+.gp-tile b { font-size: 11px; color: var(--text-2); letter-spacing: .04em; }
+.gp-big { font-size: 34px; font-weight: 650; }
+.gp-scenes { display: flex; gap: 8px; align-items: center; }
+.sliders { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 22px; }
+.slider { display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; font-size: 13px; align-items: center; }
+.slider input { grid-column: 1 / -1; width: 100%; accent-color: var(--accent); }
+.slider output { color: var(--text-3); font-variant-numeric: tabular-nums; font-size: 12px; }

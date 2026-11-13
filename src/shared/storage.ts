@@ -32,7 +32,31 @@ export interface Settings {
   suggest: 'google' | 'duckduckgo' | 'off';
   /** Your own Tab-to-search sites. */
   engines: Engine[];
+  glassTune: GlassTune;
 }
+
+/** Liquid glass tuning (Настройки → Жидкое стекло). */
+export interface GlassTune {
+  /** Frost under the glass, px (Gaussian stdDeviation). */
+  blur: number;
+  /** Lens strength, 0 = flat glass. */
+  refraction: number;
+  /** Width of the bent rim, px. */
+  bezel: number;
+  /** Chromatic split between R/G/B, 0–0.6. */
+  chroma: number;
+  saturation: number;
+  /** Tint opacity over the page, 0–0.95. */
+  tint: number;
+  /** Rim light strength, 0–1.5. */
+  rim: number;
+  /** Radius of the light that follows the cursor, px. */
+  light: number;
+  /** Soft blur of the page around the bar, px. */
+  haze: number;
+}
+
+export const DEFAULT_GLASS_TUNE: GlassTune = { blur: 1.1, refraction: 1, bezel: 34, chroma: 0.32, saturation: 1.45, tint: 0.55, rim: 1, light: 260, haze: 2.5 };
 
 export const DEFAULT_SETTINGS: Settings = {
   googleClientId: import.meta.env.VITE_GOOGLE_CLIENT_ID ?? '',
@@ -44,6 +68,7 @@ export const DEFAULT_SETTINGS: Settings = {
   glass: 'liquid',
   suggest: 'google',
   engines: [],
+  glassTune: DEFAULT_GLASS_TUNE,
 };
 
 export const DEFAULT_LAYOUT: Tile[] = [

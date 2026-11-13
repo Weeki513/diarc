@@ -66,38 +66,91 @@ export function startGlassReporter(panel: HTMLElement): { stop(): void; kick(): 
 }
 
 /**
- * Live rim light: the bright spot on the glass edges follows the cursor (over the bar and over
- * the page, forwarded by the content script) and the light angle sways as the page or the
- * widgets scroll. Plus adaptive contrast: the content script reports how bright the page behind
- * is, and the glass switches between light and dark tint.
+ * One light for the whole bar, so it behaves like a single organism instead of every piece
+ * flashing in sync. The rims are lit by fixed-attachment gradients (viewport coordinates), so
+ * the same light field spans the search pill, every tile and the footer:
+ *  - a key light that drifts with page/widget scroll,
+ *  - a cursor light that follows the pointer on a spring (it lags and overshoots a little),
+ *  - a ripple that runs across all pieces from the search field when the bar opens.
+ * Plus adaptive contrast: the content script reports how bright the page behind is.
  */
-export function startLight(): void {
+export function startLight(): { wave(): void } {
   const html = document.documentElement;
-  let pageScroll = 0;
-  let innerScroll = 0;
+  const set = (k: string, v: string) => html.style.setProperty(k, v);
+  let pageScroll = 0, innerScroll = 0;
+  let tx = -2000, ty = -2000; // target (pointer)
+  let x = -2000, y = -2000, vx = 0, vy = 0; // spring state
   let raf = 0;
-  let mx = -999, my = -999;
-  const apply = () => {
+  let waveStart = 0;
+
+  const key = () => {
+    const s = (pageScroll + innerScroll) / 420;
+    set('--kx', `${(innerWidth * (0.32 + 0.22 * Math.sin(s))).toFixed(0)}px`);
+    set('--ky', `${(-160 + 90 * Math.cos(s * 0.7)).toFixed(0)}px`);
+  };
+  const frame = (now: number) => {
     raf = 0;
-    html.style.setProperty('--mx', `${mx}px`);
-    html.style.setProperty('--my', `${my}px`);
-    html.style.setProperty('--sa', `${(150 + 38 * Math.sin((pageScroll + innerScroll) / 260)).toFixed(1)}deg`);
+    let busy = false;
+    // Spring towards the pointer: a soft, slightly overshooting follow.
+    if (x < -1000) { x = tx; y = ty; }
+    const ax = (tx - x) * 0.14, ay = (ty - y) * 0.14;
+    vx = (vx + ax) * 0.74;
+    vy = (vy + ay) * 0.74;
+    x += vx;
+    y += vy;
+    if (Math.abs(tx - x) + Math.abs(ty - y) + Math.abs(vx) + Math.abs(vy) > 0.5) busy = true;
+    set('--lx', `${x.toFixed(1)}px`);
+    set('--ly', `${y.toFixed(1)}px`);
+    // Opening ripple.
+    if (waveStart) {
+      const t = (now - waveStart) / 1100;
+      if (t >= 1) {
+        waveStart = 0;
+        set('--wr', '-200px');
+      } else {
+        const e = 1 - Math.pow(1 - t, 3);
+        set('--wr', `${(e * 1400).toFixed(0)}px`);
+        set('--wa', `${(1 - t).toFixed(2)}`);
+        busy = true;
+      }
+    }
+    if (busy) raf = requestAnimationFrame(frame);
   };
-  const queue = () => {
-    if (!raf) raf = requestAnimationFrame(apply);
+  const kick = () => {
+    if (!raf) raf = requestAnimationFrame(frame);
   };
-  window.addEventListener('mousemove', (e: MouseEvent) => { mx = e.clientX; my = e.clientY; queue(); }, { passive: true });
+  const point = (px: number, py: number) => {
+    tx = px;
+    ty = py;
+    kick();
+  };
+
+  window.addEventListener('mousemove', (e: MouseEvent) => point(e.clientX, e.clientY), { passive: true });
   document.addEventListener('scroll', (e) => {
     const t = e.target as HTMLElement;
     if (t?.classList?.contains('grid-wrap') || t?.classList?.contains('results')) innerScroll = t.scrollTop;
-    queue();
+    key();
   }, { capture: true, passive: true });
-  addEventListener('message', (e) => {
+  window.addEventListener('message', (e) => {
     if (e.source !== parent) return;
     const d = e.data as { diarc?: string; x?: number; y?: number; luma?: number };
-    if (d?.diarc === 'pointer') { mx = d.x!; my = d.y!; queue(); }
-    else if (d?.diarc === 'scroll') { pageScroll = d.y!; queue(); }
+    if (d?.diarc === 'pointer') point(d.x!, d.y!);
+    else if (d?.diarc === 'scroll') { pageScroll = d.y!; key(); }
     else if (d?.diarc === 'backdrop') html.dataset.backdrop = d.luma! > 0.55 ? 'light' : 'dark';
   });
-  apply();
+  window.addEventListener('resize', key);
+  key();
+  set('--wr', '-200px');
+
+  return {
+    wave() {
+      const bar = document.querySelector('.bar')?.getBoundingClientRect();
+      if (bar) {
+        set('--wx', `${(bar.left + bar.width / 2).toFixed(0)}px`);
+        set('--wy', `${(bar.top + bar.height / 2).toFixed(0)}px`);
+      }
+      waveStart = performance.now();
+      kick();
+    },
+  };
 }
