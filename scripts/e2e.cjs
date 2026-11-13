@@ -146,6 +146,10 @@ function mockCache() {
   const tinted = await f.$eval('.bar', (b) => b.className + ' ' + b.style.getPropertyValue('--site'));
   console.log('bar tint:', tinted, tinted.includes('tinted') ? '✓' : '❌');
   await page.screenshot({ path: `${OUT}/2b-suggest.png` });
+  await f.$$eval('.res', (els) => els.find((e) => e.textContent.includes('youtube music')).querySelector('.res-close').click());
+  await page.waitForTimeout(150);
+  const afterRemove = await f.$$eval('.res-title', (els) => els.map((e) => e.textContent));
+  console.log('× removes suggestion:', afterRemove.includes('youtube music') ? '❌' : '✓');
   await page.keyboard.press('Tab');
   await page.keyboard.type('lofi');
   await page.waitForTimeout(400);

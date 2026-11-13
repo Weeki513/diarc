@@ -52,3 +52,28 @@ export async function webSuggestions(provider: SuggestProvider, q: string, ds = 
     if (inflight === ctrl) inflight = null;
   }
 }
+
+// ---- Suggestions the user removed with × (kept locally, never sent anywhere) ----
+const HIDDEN_KEY = 'diarc:hidden-suggestions';
+let hidden: Set<string> | null = null;
+function hiddenSet(): Set<string> {
+  if (!hidden) {
+    try {
+      hidden = new Set(JSON.parse(localStorage.getItem(HIDDEN_KEY) ?? '[]') as string[]);
+    } catch {
+      hidden = new Set();
+    }
+  }
+  return hidden;
+}
+export function hideSuggestion(r: Result): void {
+  const set = hiddenSet();
+  set.add((r.url ?? r.title).toLowerCase());
+  try {
+    localStorage.setItem(HIDDEN_KEY, JSON.stringify([...set].slice(-500)));
+  } catch {}
+}
+export function visibleSuggestions(list: Result[]): Result[] {
+  const set = hiddenSet();
+  return set.size ? list.filter((r) => !set.has((r.url ?? r.title).toLowerCase())) : list;
+}

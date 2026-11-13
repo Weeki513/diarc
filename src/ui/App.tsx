@@ -4,7 +4,7 @@ import { builtinCommands } from './commands';
 import { MODE, TAB_ORIGIN, closeBar, favicon, focusTab, looksLikeUrl, openUrl, setCloser, webSearch } from './env';
 import { useSnapshot, type Snapshot } from './hooks';
 import { asyncResults, rank, syncResults, type Result } from './search';
-import { cachedSuggestions, webSuggestions } from './suggest';
+import { cachedSuggestions, hideSuggestion, visibleSuggestions, webSuggestions } from './suggest';
 import { isLight, siteTint } from './tint';
 import { BUILTIN_ENGINES, engineUrl, matchEngine, type Engine } from '../shared/engines';
 import { Grid } from './Grid';
@@ -140,7 +140,7 @@ export function App(props: { initial: Snapshot }) {
     if (scope) {
       const q = query.trim();
       const head: Result[] = q ? [{ key: 'search', kind: 'search', title: q, subtitle: `Искать на ${scope.name}`, score: 0 }] : [];
-      const scoped = (w: Result[]) => [...head, ...w.filter((r) => r.kind === 'suggest' && r.title.toLowerCase() !== q.toLowerCase()).slice(0, 7)];
+      const scoped = (w: Result[]) => [...head, ...visibleSuggestions(w).filter((r) => r.kind === 'suggest' && r.title.toLowerCase() !== q.toLowerCase()).slice(0, 7)];
       setResults(scoped(cachedSuggestions(provider, q, scope.ds) ?? []));
       setSel(0);
       if (q) webSuggestions(provider, q, scope.ds).then((w) => token === searchToken.current && setResults(scoped(w)));
@@ -153,7 +153,7 @@ export function App(props: { initial: Snapshot }) {
     const sync = syncResults(query, tabs, commands);
     let local = sync;
     let web = cachedSuggestions(provider, query) ?? [];
-    const update = () => token === searchToken.current && setResults(rank(query, local, web));
+    const update = () => token === searchToken.current && setResults(rank(query, local, visibleSuggestions(web)));
     update();
     setSel(0);
     asyncResults(query).then((more) => {
@@ -226,6 +226,17 @@ export function App(props: { initial: Snapshot }) {
     }
   };
 
+  /** × on a row: forget a history entry or hide a web suggestion, right away. */
+  const removable = (r: Result) => r.kind === 'history' || r.kind === 'suggest' || r.kind === 'nav';
+  const removeResult = async (r: Result) => {
+    if (!removable(r)) return;
+    setResults((cur) => cur.filter((x) => x.key !== r.key));
+    if (r.kind === 'history') {
+      await chrome.history.deleteUrl({ url: r.url! }).catch(() => {});
+      hideSuggestion({ ...r, kind: 'nav' }); // the suggestion service may still offer the same page
+    } else hideSuggestion(r);
+  };
+
   const closeTabResult = async (r: Result) => {
     if (r.kind !== 'tab' || !r.tab?.id) return;
     await chrome.tabs.remove(r.tab.id);
@@ -260,6 +271,9 @@ export function App(props: { initial: Snapshot }) {
     } else if (e.key === 'Enter' && !e.isComposing) {
       e.preventDefault();
       activate(results[sel], { shift: e.shiftKey });
+    } else if ((e.key === 'Delete' || e.key === 'Backspace') && e.shiftKey && results[sel] && removable(results[sel])) {
+      e.preventDefault();
+      removeResult(results[sel]);
     } else if (e.key === 'Backspace' && (e.metaKey || e.ctrlKey) && results[sel]?.kind === 'tab') {
       e.preventDefault();
       closeTabResult(results[sel]);
@@ -363,6 +377,11 @@ export function App(props: { initial: Snapshot }) {
                   <span class="res-title">{r.title}</span>
                   {r.subtitle && <span class="res-sub">{r.subtitle}</span>}
                 </span>
+                {removable(r) && (
+                  <button class="res-close" title="Убрать из подсказок (⇧⌫)" onClick={(e) => { e.stopPropagation(); removeResult(r); }}>
+                    <IconX size={12} />
+                  </button>
+                )}
                 {r.kind === 'tab' && (
                   <button class="res-close" title="Закрыть вкладку (⌘⌫)" onClick={(e) => { e.stopPropagation(); closeTabResult(r); }}>
                     <IconX size={12} />
