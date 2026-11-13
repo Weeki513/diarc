@@ -6,9 +6,7 @@ An Arc-style command bar for the [Dia](https://www.diabrowser.com/) browser. Pre
 of the page you're on: search across tabs, history, bookmarks and the web, tab commands, and a grid of widget tiles
 (Google Calendar, Gmail, TickTick and your own). Works in any Chromium-based browser.
 
-[![Watch Diarc in action](docs/screenshots/home.png)](https://github.com/Weeki513/diarc/blob/main/docs/diarc-release-v2.mp4)
-
-[▶ Watch Diarc in action](https://github.com/Weeki513/diarc/blob/main/docs/diarc-release-v2.mp4)
+https://github.com/user-attachments/assets/995e0249-106c-4183-a8a7-9e00c5d6ec33
 
 [Download the latest release](https://github.com/Weeki513/diarc/releases/latest) · [Русская версия](README.ru.md)
 
