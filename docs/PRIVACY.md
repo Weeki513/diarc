@@ -1,6 +1,6 @@
 # Diarc — Privacy Policy
 
-_Last updated: 2026-11-12_
+_Last updated: 2026-11-13_
 
 Diarc is a browser extension that shows a command bar with search and widgets.
 
@@ -9,7 +9,10 @@ them, your Google Calendar events, Gmail unread messages (sender, subject, short
 
 **Where it goes.** All data stays on your device, in the extension's local storage. Diarc talks directly to Google,
 TickTick and Open-Meteo APIs from your browser. There is no Diarc server; nothing is sent to the developer or any
-third party, and no analytics are collected. Widget data is never inserted into web pages: the command bar runs in an
+third party, and no analytics are collected. Search suggestions work like the browser's address bar: while you type in
+the bar, the typed text is sent to the suggestion service you chose (Google by default, or DuckDuckGo); you can turn
+suggestions off in settings. For site search (Tab), Diarc reads a site's public OpenSearch description when you visit it
+and keeps only the site's search URL locally. Widget data is never inserted into web pages: the command bar runs in an
 isolated extension frame that websites cannot read.
 
 **Tokens.** OAuth access tokens are stored locally and used only to call the respective API. You can disconnect any

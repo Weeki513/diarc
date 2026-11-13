@@ -7,7 +7,8 @@ export type BgRequest =
   | { type: 'auth:connect'; provider: 'google' | 'ticktick'; scopes?: string[] }
   | { type: 'auth:disconnect'; provider: 'google' | 'ticktick' }
   | { type: 'auth:status' }
-  | { type: 'overlay:closed' };
+  | { type: 'overlay:closed' }
+  | { type: 'engine:found'; href: string };
 
 export type BgResponse<T = unknown> = { ok: true; result?: T } | { ok: false; error: string; needsAuth?: string };
 

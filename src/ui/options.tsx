@@ -4,6 +4,7 @@ import { bg } from '../shared/messages';
 import { DEFAULT_LAYOUT, DEFAULT_SETTINGS, K, getSettings, saveLayout, saveSettings, type Settings } from '../shared/storage';
 import './styles.css';
 import './options.css';
+import { BUILTIN_ENGINES, type Engine } from '../shared/engines';
 
 type Status = Record<'google' | 'ticktick', { connected: boolean; scopes?: string[] }>;
 
@@ -81,7 +82,25 @@ function Options() {
             <option value="dark">Тёмная</option>
           </select>
         </label>
+        <label class="row">
+          <span>Стекло<small>«Жидкое» преломляет страницу у краёв, как в iOS. Если на слабом железе подтормаживает, выберите «Матовое».</small></span>
+          <select value={s.glass} onChange={(e) => update({ glass: (e.target as HTMLSelectElement).value as Settings['glass'] })}>
+            <option value="liquid">Жидкое</option>
+            <option value="frost">Матовое</option>
+            <option value="off">Без стекла</option>
+          </select>
+        </label>
+        <label class="row">
+          <span>Подсказки поиска<small>Как в адресной строке: введённый текст отправляется сервису подсказок.</small></span>
+          <select value={s.suggest} onChange={(e) => update({ suggest: (e.target as HTMLSelectElement).value as Settings['suggest'] })}>
+            <option value="google">Google</option>
+            <option value="duckduckgo">DuckDuckGo</option>
+            <option value="off">Выключены</option>
+          </select>
+        </label>
       </section>
+
+      <Engines engines={s.engines ?? []} onChange={(engines) => update({ engines })} />
 
       <section>
         <h2>Google (Календарь, Gmail API)</h2>
@@ -123,6 +142,53 @@ function Options() {
       </section>
       <footer class="muted">Settings key: <code>{K.settings}</code> · v{chrome.runtime.getManifest().version}</footer>
     </div>
+  );
+}
+
+function Engines(props: { engines: Engine[]; onChange(e: Engine[]): void }) {
+  const [auto, setAuto] = useState<Engine[]>([]);
+  const [draft, setDraft] = useState({ name: '', keyword: '', url: '' });
+  const [err, setErr] = useState('');
+  useEffect(() => {
+    chrome.storage.local.get('engines:auto').then((r) => setAuto(Object.values((r['engines:auto'] ?? {}) as Record<string, Engine>)));
+  }, []);
+  const add = () => {
+    const url = draft.url.trim();
+    if (!draft.name.trim() || !draft.keyword.trim()) return setErr('Укажите название и слово');
+    if (!/^https?:\/\//.test(url) || !url.includes('%s')) return setErr('Адрес должен начинаться с https:// и содержать %s на месте запроса');
+    let host = '';
+    try { host = new URL(url.replace('%s', 'x')).hostname.replace(/^www\./, ''); } catch { return setErr('Некорректный адрес'); }
+    setErr('');
+    props.onChange([...props.engines, { name: draft.name.trim(), keyword: draft.keyword.trim().toLowerCase(), url, host, source: 'custom' }]);
+    setDraft({ name: '', keyword: '', url: '' });
+  };
+  return (
+    <section>
+      <h2>Поиск по сайтам (Tab)</h2>
+      <p class="muted">
+        Введите название сайта или его слово и нажмите Tab: дальше запрос ищется прямо на этом сайте. Встроено {BUILTIN_ENGINES.length} сайтов
+        ({BUILTIN_ENGINES.slice(0, 6).map((e) => `${e.name} — ${e.keyword}`).join(', ')}…). Сайты с OpenSearch, которые вы посещаете, добавляются сами.
+      </p>
+      {props.engines.map((e, i) => (
+        <div class="engine" key={i}>
+          <b>{e.name}</b><code>{e.keyword}</code><span class="engine-url">{e.url}</span>
+          <button class="k-btn" onClick={() => props.onChange(props.engines.filter((_, j) => j !== i))}>Удалить</button>
+        </div>
+      ))}
+      <div class="engine-add">
+        <input placeholder="Название" value={draft.name} onInput={(e) => setDraft({ ...draft, name: (e.target as HTMLInputElement).value })} />
+        <input placeholder="Слово" value={draft.keyword} onInput={(e) => setDraft({ ...draft, keyword: (e.target as HTMLInputElement).value })} />
+        <input placeholder="https://site.com/search?q=%s" value={draft.url} onInput={(e) => setDraft({ ...draft, url: (e.target as HTMLInputElement).value })} />
+        <button class="k-btn k-primary" onClick={add}>Добавить</button>
+      </div>
+      {err && <p class="error">{err}</p>}
+      {auto.length > 0 && (
+        <p class="muted">
+          Найдено автоматически: {auto.map((e) => e.host).join(', ')}.{' '}
+          <a href="#" onClick={(e) => { e.preventDefault(); chrome.storage.local.remove('engines:auto').then(() => setAuto([])); }}>Очистить</a>
+        </p>
+      )}
+    </section>
   );
 }
 

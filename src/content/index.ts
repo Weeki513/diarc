@@ -10,6 +10,8 @@
  *    once the iframe reports `ready`.
  *  - Iframes of tabs hidden for 5 minutes are dropped to keep memory low.
  */
+import { GLASS_CSS, GlassLayer, type GlassMode, type GlassMsg } from './glass';
+
 type W = Window & { __diarc?: boolean };
 
 (() => {
@@ -28,6 +30,8 @@ type W = Window & { __diarc?: boolean };
   let open = false;
   let lastFocus: Element | null = null;
   let unloadTimer: number | undefined;
+  let glass: GlassLayer | null = null;
+  let glassMode: GlassMode = 'liquid';
 
   const CSS = `
     :host { all: initial; position: fixed; inset: 0; z-index: 2147483647; display: none; pointer-events: none; }
@@ -35,13 +39,16 @@ type W = Window & { __diarc?: boolean };
       border: 0; background: transparent; color-scheme: normal; pointer-events: auto; }
     .shell { position: absolute; inset: 0; background: transparent; pointer-events: none; font: 16px -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif; }
     .bar { position: absolute; left: 50%; top: 14vh; transform: translateX(-50%); width: min(760px, calc(100vw - 32px)); height: 58px; box-sizing: border-box; pointer-events: auto;
-      border-radius: 18px; background: #fbfbfd; box-shadow: 0 30px 80px rgba(0,0,0,.28), 0 0 0 .5px rgba(0,0,0,.12); }
+      border-radius: 29px; background: rgba(255,255,255,.55); backdrop-filter: blur(14px) saturate(1.7);
+      box-shadow: 0 10px 30px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.7), 0 0 0 .5px rgba(0,0,0,.08); }
     .bar input { all: unset; box-sizing: border-box; width: 100%; height: 100%; padding: 0 20px 0 52px; font-size: 19px; color: #111; }
     .bar svg { position: absolute; left: 20px; top: 20px; opacity: .45; }
     @media (prefers-color-scheme: dark) {
-      .bar { background: #1f1f23; box-shadow: 0 30px 80px rgba(0,0,0,.5), 0 0 0 .5px rgba(255,255,255,.12); }
+      .bar { background: rgba(30,30,34,.5); box-shadow: 0 10px 30px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.18), 0 0 0 .5px rgba(255,255,255,.1); }
       .bar input { color: #f2f2f4; } .bar svg { stroke: #fff; }
-    }`;
+    }
+    iframe { z-index: 1; } .shell { z-index: 2; }
+    ${GLASS_CSS}`;
 
   function ensureHost(): void {
     if (host) return;
@@ -50,6 +57,7 @@ type W = Window & { __diarc?: boolean };
     const style = document.createElement('style');
     style.textContent = CSS;
     root.append(style);
+    glass = new GlassLayer(root, glassMode);
     // Keep page shortcuts from seeing keys typed into the shell.
     for (const t of ['keydown', 'keyup', 'keypress']) host.addEventListener(t, (e) => e.stopPropagation());
     // The page stays interactive around the bar (scroll, select); a click outside closes it.
@@ -99,6 +107,7 @@ type W = Window & { __diarc?: boolean };
     shell?.remove();
     shell = shellInput = null;
     frame!.style.visibility = 'visible';
+    glass?.flash();
     frame!.focus();
     sendViewport();
     post({ diarc: 'open', text });
@@ -120,6 +129,7 @@ type W = Window & { __diarc?: boolean };
     post({ diarc: 'hide' });
     host!.style.display = 'none';
     if (frame) frame.style.visibility = 'hidden';
+    glass?.clear();
     shell?.remove();
     shell = shellInput = null;
     if (lastFocus instanceof HTMLElement) lastFocus.focus({ preventScroll: true });
@@ -139,7 +149,11 @@ type W = Window & { __diarc?: boolean };
       ready = true;
       if (open) reveal();
     } else if (d?.diarc === 'close') hide();
-    else if (d?.diarc === 'size' && typeof (d as { h?: number }).h === 'number') {
+    else if (d?.diarc === 'glass') {
+      if (!open) return;
+      const r = frame.getBoundingClientRect();
+      glass?.update(d as unknown as GlassMsg, { x: r.left, y: r.top });
+    } else if (d?.diarc === 'size' && typeof (d as { h?: number }).h === 'number') {
       frame.style.height = `${Math.min((d as { h: number }).h, window.innerHeight)}px`;
     }
   });
@@ -151,11 +165,27 @@ type W = Window & { __diarc?: boolean };
     }
   });
 
+  // ---- Tab-to-search: report the site's OpenSearch description (if any) once per page ----
+  const findEngine = () => {
+    const link = document.querySelector<HTMLLinkElement>('link[rel="search"][type="application/opensearchdescription+xml"]');
+    if (link?.href && location.protocol === 'https:') chrome.runtime.sendMessage({ type: 'engine:found', href: link.href }).catch(() => {});
+  };
+  if (document.readyState === 'complete') setTimeout(findEngine, 2000);
+  else window.addEventListener('load', () => setTimeout(findEngine, 2000), { once: true });
+
   // ---- Prewarm / unload ----
   let prewarm = true;
+  type S = { prewarm?: boolean; glass?: GlassMode } | undefined;
   chrome.storage.local.get('settings').then((r) => {
-    prewarm = (r.settings as { prewarm?: boolean } | undefined)?.prewarm ?? true;
+    prewarm = (r.settings as S)?.prewarm ?? true;
+    glassMode = (r.settings as S)?.glass ?? 'liquid';
+    glass?.setMode(glassMode);
     schedulePrewarm();
+  });
+  chrome.storage.onChanged.addListener((c, area) => {
+    if (area !== 'local' || !c.settings) return;
+    glassMode = (c.settings.newValue as S)?.glass ?? 'liquid';
+    glass?.setMode(glassMode);
   });
 
   function schedulePrewarm(): void {

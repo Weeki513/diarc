@@ -7,7 +7,7 @@ import { Button, IconX } from './kit';
 
 export function Sheet(props: { title: string; onClose(): void; children: preact.ComponentChildren }) {
   return (
-    <div class="sheet">
+    <div class="sheet glass">
       <div class="sheet-head">
         <span>{props.title}</span>
         <button class="k-icon-btn" onClick={props.onClose} title="Закрыть"><IconX /></button>

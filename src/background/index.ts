@@ -2,6 +2,7 @@
  * Service worker: shortcut handling, overlay injection/fallback, widget data refresh, OAuth.
  * Kept event-driven so Chrome can suspend it when idle (minimal resource use).
  */
+import { parseOpenSearch, type Engine } from '../shared/engines';
 import type { BgRequest, BgResponse } from '../shared/messages';
 import { AuthRequiredError } from '../shared/widget';
 import { K } from '../shared/storage';
@@ -117,6 +118,10 @@ chrome.action.onClicked.addListener((tab) => toggle(tab));
 
 chrome.runtime.onMessage.addListener((msg: BgRequest, sender, sendResponse: (r: BgResponse) => void) => {
   if (sender.id !== chrome.runtime.id || !msg || typeof msg !== 'object' || !('type' in msg)) return;
+  if (msg.type === 'engine:found') {
+    learnEngine(msg.href, sender.tab?.url);
+    return;
+  }
   handle(msg)
     .then((result) => sendResponse({ ok: true, result }))
     .catch((e: Error) =>
@@ -177,3 +182,33 @@ chrome.storage.onChanged.addListener((changes, area) => {
     refreshStale();
   }
 });
+
+// ---- Tab-to-search: remember OpenSearch engines of sites the user visits ----
+const AUTO_ENGINES_MAX = 150;
+const seenEngineHosts = new Set<string>();
+
+async function learnEngine(href: string, pageUrl: string | undefined): Promise<void> {
+  try {
+    if (!pageUrl) return;
+    const page = new URL(pageUrl);
+    const desc = new URL(href, page);
+    const host = page.hostname.replace(/^www\./, '');
+    if (page.protocol !== 'https:' || seenEngineHosts.has(host)) return;
+    seenEngineHosts.add(host);
+    const stored = ((await chrome.storage.local.get('engines:auto'))['engines:auto'] ?? {}) as Record<string, Engine>;
+    if (stored[host]) return;
+    const res = await fetch(desc, { credentials: 'omit' });
+    if (!res.ok) return;
+    const parsed = parseOpenSearch((await res.text()).slice(0, 20_000));
+    if (!parsed) return;
+    // Only accept a template that searches the same site that announced it.
+    const tplHost = new URL(parsed.url.replace('{searchTerms}', 'x')).hostname.replace(/^www\./, '');
+    if (tplHost !== host && !tplHost.endsWith(`.${host}`) && !host.endsWith(`.${tplHost}`)) return;
+    const keys = Object.keys(stored);
+    if (keys.length >= AUTO_ENGINES_MAX) delete stored[keys[0]];
+    stored[host] = { name: parsed.name, keyword: host, host, url: parsed.url, source: 'auto' };
+    await chrome.storage.local.set({ 'engines:auto': stored });
+  } catch {
+    /* ignore: discovery is best effort */
+  }
+}

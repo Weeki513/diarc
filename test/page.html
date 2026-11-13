@@ -3,6 +3,12 @@
 <body style="font: 16px system-ui; padding: 40px; background: linear-gradient(135deg,#e0e7ff,#fdf2f8); min-height: 300vh; margin: 0">
   <h1>Example article</h1>
   <p>Some page content behind the command bar. Pressed keys: <span id="keys"></span></p>
+  <div style="margin-top:20px;display:grid;grid-template-columns:repeat(6,1fr);gap:14px">
+    <div style="height:180px;border-radius:12px;background:#ff5f57"></div><div style="height:180px;border-radius:12px;background:#28c840"></div>
+    <div style="height:180px;border-radius:12px;background:repeating-linear-gradient(45deg,#111 0 10px,#fff 10px 20px)"></div><div style="height:180px;border-radius:12px;background:#0a84ff"></div>
+    <div style="height:180px;border-radius:12px;background:#ffbd2e"></div><div style="height:180px;border-radius:12px;background:#bf5af2"></div>
+  </div>
+  <p style="font-size:44px;font-weight:700;line-height:1.2;max-width:1100px">Liquid glass bends whatever is behind it — text, photos and stripes — right at the rounded edges.</p>
   <script>
     window.pageKeys = [];
     document.addEventListener('keydown', (e) => { window.pageKeys.push(e.key); document.getElementById('keys').textContent = window.pageKeys.join(''); }, true);

@@ -1,3 +1,4 @@
+import type { Engine } from './engines';
 import type { TileSize } from './widget';
 
 export interface Tile {
@@ -25,6 +26,12 @@ export interface Settings {
   /** Enter opens results in a new tab (Arc behaviour). Shift+Enter does the opposite. */
   openInNewTab: boolean;
   theme: 'system' | 'light' | 'dark';
+  /** liquid: refracting glass (SVG lens filter); frost: plain blur; off: solid panels. */
+  glass: 'liquid' | 'frost' | 'off';
+  /** Web search suggestions while typing (the query is sent to the provider, like the omnibox). */
+  suggest: 'google' | 'duckduckgo' | 'off';
+  /** Your own Tab-to-search sites. */
+  engines: Engine[];
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -34,6 +41,9 @@ export const DEFAULT_SETTINGS: Settings = {
   prewarm: true,
   openInNewTab: true,
   theme: 'system',
+  glass: 'liquid',
+  suggest: 'google',
+  engines: [],
 };
 
 export const DEFAULT_LAYOUT: Tile[] = [

@@ -1,37 +1,47 @@
 /* Diarc overlay. Light/dark via prefers-color-scheme, overridable with [data-theme]. */
 :root {
   --bg: #fbfbfd;
-  --bg-2: #f2f2f5;
-  --tile: #ffffff;
-  --text: #16161a;
-  --text-2: #6b6b76;
-  --text-3: #9a9aa5;
+  --bg-2: rgba(118, 118, 132, 0.13);
+  --tile: rgba(255, 255, 255, 0.92);
+  --text: #141418;
+  --text-2: #55555f;
+  --text-3: #7f7f8a;
   --line: rgba(0, 0, 0, 0.08);
-  --hover: rgba(0, 0, 0, 0.045);
-  --sel: rgba(94, 92, 230, 0.12);
+  --hover: rgba(0, 0, 0, 0.055);
+  --sel: rgba(94, 92, 230, 0.14);
   --accent: #5e5ce6;
   --danger: #e5484d;
-  --shadow: 0 18px 40px rgba(0, 0, 0, 0.22), 0 2px 8px rgba(0, 0, 0, 0.1), 0 0 0 0.5px rgba(0, 0, 0, 0.14);
-  --tile-shadow: 0 1px 2px rgba(0, 0, 0, 0.05), 0 0 0 0.5px rgba(0, 0, 0, 0.07);
-  --r: 18px;
+  /* Liquid glass: a thin tint over the refracted page (the refraction itself is drawn by the
+     content script under the iframe), a bright rim where light hits and a soft drop shadow. */
+  --glass: rgba(255, 255, 255, 0.44);
+  --glass-strong: rgba(250, 250, 252, 0.82);
+  --sheen: rgba(255, 255, 255, 0.22);
+  --rim: rgba(255, 255, 255, 0.95);
+  --rim-2: rgba(255, 255, 255, 0.45);
+  --glow: rgba(255, 255, 255, 0.18);
+  --glass-shadow: 0 8px 22px rgba(0, 0, 0, 0.14), 0 1px 4px rgba(0, 0, 0, 0.08), 0 0 0 0.5px rgba(0, 0, 0, 0.06);
+  --r: 22px;
   font: 14px/1.35 -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Inter', system-ui, sans-serif;
   color: var(--text);
   -webkit-font-smoothing: antialiased;
 }
 @media (prefers-color-scheme: dark) {
   .root:not([data-theme='light']) {
-    --bg: #1f1f23; --bg-2: #2a2a2f; --tile: #2a2a30; --text: #f2f2f4; --text-2: #a3a3ad; --text-3: #75757f;
-    --line: rgba(255, 255, 255, 0.08); --hover: rgba(255, 255, 255, 0.06); --sel: rgba(129, 127, 255, 0.2);
-    --accent: #8b89ff; --shadow: 0 18px 40px rgba(0, 0, 0, 0.5), 0 0 0 0.5px rgba(255, 255, 255, 0.12);
-    --tile-shadow: 0 0 0 0.5px rgba(255, 255, 255, 0.08);
+    --bg: #1f1f23; --bg-2: rgba(255, 255, 255, 0.08); --tile: rgba(44, 44, 50, 0.96); --text: #f4f4f6; --text-2: #b4b4be; --text-3: #8b8b96;
+    --line: rgba(255, 255, 255, 0.09); --hover: rgba(255, 255, 255, 0.07); --sel: rgba(129, 127, 255, 0.24); --accent: #8b89ff;
+    --glass: rgba(22, 22, 26, 0.5); --glass-strong: rgba(30, 30, 34, 0.86); --sheen: rgba(255, 255, 255, 0.07);
+    --rim: rgba(255, 255, 255, 0.5); --rim-2: rgba(255, 255, 255, 0.18); --glow: rgba(255, 255, 255, 0.05);
+    --glass-shadow: 0 8px 24px rgba(0, 0, 0, 0.36), 0 1px 4px rgba(0, 0, 0, 0.22), 0 0 0 0.5px rgba(0, 0, 0, 0.4);
   }
 }
 .root[data-theme='dark'] {
-  --bg: #1f1f23; --bg-2: #2a2a2f; --tile: #2a2a30; --text: #f2f2f4; --text-2: #a3a3ad; --text-3: #75757f;
-  --line: rgba(255, 255, 255, 0.08); --hover: rgba(255, 255, 255, 0.06); --sel: rgba(129, 127, 255, 0.2);
-  --accent: #8b89ff; --shadow: 0 18px 40px rgba(0, 0, 0, 0.5), 0 0 0 0.5px rgba(255, 255, 255, 0.12);
-  --tile-shadow: 0 0 0 0.5px rgba(255, 255, 255, 0.08);
+  --bg: #1f1f23; --bg-2: rgba(255, 255, 255, 0.08); --tile: rgba(44, 44, 50, 0.96); --text: #f4f4f6; --text-2: #b4b4be; --text-3: #8b8b96;
+  --line: rgba(255, 255, 255, 0.09); --hover: rgba(255, 255, 255, 0.07); --sel: rgba(129, 127, 255, 0.24); --accent: #8b89ff;
+  --glass: rgba(22, 22, 26, 0.5); --glass-strong: rgba(30, 30, 34, 0.86); --sheen: rgba(255, 255, 255, 0.07);
+  --rim: rgba(255, 255, 255, 0.5); --rim-2: rgba(255, 255, 255, 0.18); --glow: rgba(255, 255, 255, 0.05);
+  --glass-shadow: 0 8px 24px rgba(0, 0, 0, 0.36), 0 1px 4px rgba(0, 0, 0, 0.22), 0 0 0 0.5px rgba(0, 0, 0, 0.4);
 }
+.root[data-glass='off'] { --glass: var(--bg); --glass-strong: var(--bg); }
 
 * { box-sizing: border-box; }
 button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
@@ -43,36 +53,71 @@ code { font: 12px ui-monospace, SFMono-Regular, Menlo, monospace; background: va
 .root { position: fixed; inset: 0; color: var(--text); color-scheme: light; }
 .root[data-theme='dark'] { color-scheme: dark; }
 @media (prefers-color-scheme: dark) { .root:not([data-theme='light']) { color-scheme: dark; } }
-/* Floats over the page without dimming it (Arc-style); a click outside the panel closes it. */
-.root.mode-frame { background: transparent; opacity: 0; transition: opacity 0.09s ease-out; }
+/* No outer frame: the search pill, results, tiles and footer float as separate glass pieces.
+   The iframe covers only the pieces (plus room for shadows), so the page stays scrollable. */
+.root.mode-frame { background: transparent; opacity: 0; transition: opacity 0.1s ease-out; }
 .root.mode-frame.shown { opacity: 1; }
-.root.mode-tab { background: var(--bg-2); }
-.root.mode-tab .panel { position: absolute; left: 50%; top: 14vh; width: min(760px, calc(100vw - 32px)); max-height: calc(86vh - 24px); }
-/* Frame mode: the iframe is only as big as the panel plus room for its shadow, so the page stays
-   scrollable and clickable around it. --page-h is the page's viewport height (sent by the content script). */
-.root.mode-frame .panel { position: absolute; left: 50%; top: 40px; width: min(760px, calc(100vw - 32px)); max-height: calc(var(--page-h, 100vh) * 0.86 - 24px);
-  transform: translateX(-50%) scale(0.985); transition: transform 0.12s cubic-bezier(0.2, 0.9, 0.3, 1.2); }
-.root.mode-tab .panel { transform: translateX(-50%); transition: none; }
-.root.mode-frame.shown .panel { transform: translateX(-50%) scale(1); }
+.panel { display: flex; flex-direction: column; gap: 10px; }
+.root.mode-frame .panel, .root.mode-tab .panel { position: absolute; left: 50%; width: min(760px, calc(100vw - 32px)); transform: translateX(-50%); }
+.root.mode-frame .panel { top: 40px; max-height: calc(var(--page-h, 100vh) * 0.86 - 24px); }
+.root.mode-tab .panel { top: 14vh; max-height: calc(86vh - 24px); }
+/* Outside a page (Dia's new tab, popup, window) there is nothing to refract: give the glass a backdrop. */
+.root:not(.mode-frame) {
+  background: radial-gradient(60% 50% at 20% 15%, #b9c6ff 0, transparent 70%), radial-gradient(50% 45% at 85% 30%, #ffc9e0 0, transparent 70%),
+    radial-gradient(60% 50% at 50% 95%, #b8f0e0 0, transparent 70%), #eef0f6;
+}
+@media (prefers-color-scheme: dark) {
+  .root:not(.mode-frame):not([data-theme='light']) {
+    background: radial-gradient(60% 50% at 20% 15%, #2b2f6b 0, transparent 70%), radial-gradient(50% 45% at 85% 30%, #5a2346 0, transparent 70%),
+      radial-gradient(60% 50% at 50% 95%, #134238 0, transparent 70%), #121216;
+  }
+}
+.root:not(.mode-frame)[data-theme='dark'] {
+  background: radial-gradient(60% 50% at 20% 15%, #2b2f6b 0, transparent 70%), radial-gradient(50% 45% at 85% 30%, #5a2346 0, transparent 70%),
+    radial-gradient(60% 50% at 50% 95%, #134238 0, transparent 70%), #121216;
+}
+.root:not(.mode-frame) .glass { -webkit-backdrop-filter: blur(22px) saturate(1.7); backdrop-filter: blur(22px) saturate(1.7); }
 html.popup, html.popup body { width: 760px; height: 580px; overflow: hidden; }
-.root.mode-window, .root.mode-page, .root.mode-popup { background: var(--bg); }
-.root.mode-window .panel, .root.mode-page .panel, .root.mode-popup .panel { position: absolute; inset: 0; border-radius: 0; box-shadow: none; max-height: none; }
+.root.mode-window .panel, .root.mode-page .panel, .root.mode-popup .panel { position: absolute; inset: 12px; }
 
-.panel { display: flex; flex-direction: column; background: var(--bg); border-radius: var(--r); box-shadow: var(--shadow); overflow: hidden; }
+.glass {
+  position: relative;
+  background: linear-gradient(180deg, var(--sheen), transparent 45%), var(--glass);
+  box-shadow: var(--glass-shadow), inset 0 0 22px var(--glow);
+}
+/* Rim light: bright where light hits (top-left), a fainter echo on the opposite edge. */
+.glass::after {
+  content: ''; position: absolute; inset: 0; border-radius: inherit; padding: 1px; pointer-events: none;
+  background: linear-gradient(150deg, var(--rim) 0%, transparent 22%, transparent 72%, var(--rim-2) 100%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor; mask-composite: exclude;
+}
 
-.bar { position: relative; display: flex; align-items: center; height: 58px; flex: none; border-bottom: 1px solid transparent; }
-.panel:has(.results, .home) .bar { border-bottom-color: var(--line); }
-.bar-icon { position: absolute; left: 20px; top: 20px; color: var(--text-3); display: flex; }
-.bar input { flex: 1; height: 100%; border: 0; outline: 0; background: transparent; padding: 0 12px 0 52px; font-size: 19px; letter-spacing: -0.01em; }
+.bar { display: flex; align-items: center; height: 58px; flex: none; border-radius: 29px; isolation: isolate; }
+/* Site tint (Arc): a coloured layer inside the glass, so the refraction still shows through. */
+.bar::before { content: ''; position: absolute; inset: 0; z-index: -1; border-radius: inherit; background: var(--site, transparent); opacity: 0; transition: opacity 0.18s ease, background-color 0.18s ease; }
+.bar.tinted::before { opacity: 0.82; }
+.bar.tinted { color: #fff; --text-2: rgba(255, 255, 255, 0.8); --text-3: rgba(255, 255, 255, 0.62); --hover: rgba(255, 255, 255, 0.16); --rim: rgba(255, 255, 255, 0.6); }
+.bar.tinted.on-light { color: #16161a; --text-2: rgba(0, 0, 0, 0.6); --text-3: rgba(0, 0, 0, 0.45); --hover: rgba(0, 0, 0, 0.08); }
+.bar input { color: inherit; }
+.bar-icon { position: absolute; left: 22px; top: 20px; color: var(--text-2); display: flex; }
+.bar input { flex: 1; height: 100%; border: 0; outline: 0; background: transparent; padding: 0 12px 0 54px; font-size: 19px; letter-spacing: -0.01em; }
 .bar input::placeholder { color: var(--text-3); }
-.bar-btn { margin-right: 12px; height: 30px; min-width: 30px; padding: 0 8px; border-radius: 8px; color: var(--text-2); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 500; }
+.bar input.scoped { padding-left: 10px; }
+.bar-scope { flex: none; margin-left: 50px; height: 30px; padding: 0 12px; border-radius: 15px; font-size: 14px; font-weight: 600; background: var(--site, var(--accent)); color: #fff; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35), 0 1px 3px rgba(0, 0, 0, 0.15); }
+.bar.tinted .bar-scope { background: rgba(255, 255, 255, 0.24); color: inherit; }
+.bar.tinted.on-light .bar-scope { background: rgba(0, 0, 0, 0.1); }
+.bar-hint { flex: none; margin-right: 14px; font-size: 12.5px; color: var(--text-2); white-space: nowrap; }
+.bar-hint kbd { background: var(--hover); color: inherit; }
+.bar-btn { margin-right: 12px; height: 34px; min-width: 34px; padding: 0 10px; border-radius: 17px; color: var(--text-2); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 500; }
 .bar-btn:hover { background: var(--hover); color: var(--text); }
 .bar-btn.on { background: var(--accent); color: #fff; }
 
 /* ---------- Results ---------- */
-.results { overflow-y: auto; padding: 6px; max-height: 470px; }
-.res { display: flex; align-items: center; gap: 12px; height: 46px; padding: 0 12px; border-radius: 10px; cursor: default; }
+.results { overflow-y: auto; padding: 6px; max-height: 470px; border-radius: var(--r); }
+.res { display: flex; align-items: center; gap: 12px; height: 46px; padding: 0 12px; border-radius: 16px; cursor: default; }
 .res.sel { background: var(--sel); }
+.res-empty { padding: 12px 14px; color: var(--text-2); font-size: 13px; }
 .res-icon { width: 22px; height: 22px; flex: none; display: flex; align-items: center; justify-content: center; color: var(--text-2); position: relative; }
 .res-icon img { border-radius: 4px; }
 .res-icon img + .res-icon-fallback { display: none; }
@@ -87,21 +132,23 @@ html.popup, html.popup body { width: 760px; height: 580px; overflow: hidden; }
 .res-close:hover { background: var(--hover); color: var(--danger); }
 
 /* ---------- Footer / toast ---------- */
-.foot { flex: none; display: flex; gap: 14px; align-items: center; height: 34px; padding: 0 16px; border-top: 1px solid var(--line); color: var(--text-3); font-size: 11.5px; white-space: nowrap; overflow: hidden; }
+.foot { flex: none; display: flex; gap: 14px; align-items: center; height: 34px; padding: 0 8px 0 14px; border-radius: 17px; color: var(--text-2); font-size: 11.5px; white-space: nowrap; }
+.foot > span { overflow: hidden; text-overflow: ellipsis; }
 .foot-right { margin-left: auto; }
-.toast { position: absolute; left: 50%; bottom: 46px; transform: translateX(-50%); background: var(--text); color: var(--bg); padding: 8px 14px; border-radius: 10px; font-size: 13px; max-width: 80%; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2); animation: pop 0.14s ease-out; z-index: 20; }
+.toast { position: absolute; left: 50%; bottom: 48px; transform: translateX(-50%); background: var(--text); color: var(--bg); padding: 8px 14px; border-radius: 10px; font-size: 13px; max-width: 80%; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2); animation: pop 0.14s ease-out; z-index: 20; }
 @keyframes pop { from { opacity: 0; transform: translate(-50%, 6px); } }
 
 /* ---------- Tile grid ---------- */
 .home { position: relative; flex: 1; min-height: 0; display: flex; }
-.grid-wrap { flex: 1; overflow-y: auto; padding: 14px; background: var(--bg-2); }
+.grid-wrap { flex: 1; overflow-y: auto; padding: 0 28px 16px; margin: 0 -28px -16px; scrollbar-width: none; }
+.home.has-sheet .grid-wrap { visibility: hidden; }
 .mode-tab .grid-wrap { max-height: min(600px, calc(86vh - 120px)); }
-.mode-frame .grid-wrap { max-height: min(600px, calc(var(--page-h, 100vh) * 0.86 - 120px)); }
+.mode-frame .grid-wrap { max-height: min(636px, calc(var(--page-h, 100vh) * 0.86 - 114px)); }
 .grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-auto-rows: 150px; grid-auto-flow: row dense; gap: 12px; }
-.tile { position: relative; background: var(--tile); border-radius: 16px; box-shadow: var(--tile-shadow); min-width: 0; min-height: 0; user-select: none; }
+.tile { border-radius: var(--r); min-width: 0; min-height: 0; user-select: none; }
 .tile-body { position: absolute; inset: 0; overflow: hidden; border-radius: inherit; }
 .tile.dragging { opacity: 0.35; }
-.ghost { position: fixed; z-index: 50; pointer-events: none; border-radius: 16px; background: var(--tile); box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25), 0 0 0 2px var(--accent); opacity: 0.9; }
+.ghost { position: fixed; z-index: 50; pointer-events: none; border-radius: var(--r); background: var(--glass-strong); box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25), 0 0 0 2px var(--accent); opacity: 0.9; }
 
 .grid.editing .tile { cursor: grab; }
 .tile.jiggle { animation: jiggle 0.32s ease-in-out infinite alternate; }
@@ -116,13 +163,13 @@ html.popup, html.popup body { width: 760px; height: 580px; overflow: hidden; }
 .tile-controls button { min-width: 24px; height: 22px; border-radius: 6px; font-size: 11px; font-weight: 600; color: var(--text-2); display: flex; align-items: center; justify-content: center; }
 .tile-controls button:hover { background: var(--hover); }
 .tile-controls button.on { background: var(--accent); color: #fff; }
-.tile-add { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; color: var(--text-2); background: transparent; border: 1.5px dashed var(--line); box-shadow: none; font-size: 12px; }
+.tile-add { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; color: var(--text-2); background: var(--bg-2); border: 1.5px dashed var(--rim-2); border-radius: var(--r); font-size: 12px; }
 .tile-add:hover { color: var(--accent); border-color: var(--accent); }
-.grid-empty { grid-column: span 4; grid-row: span 1; border: 1.5px dashed var(--line); border-radius: 16px; color: var(--text-2); }
+.grid-empty { grid-column: span 4; grid-row: span 1; border: 1.5px dashed var(--rim-2); background: var(--bg-2); border-radius: var(--r); color: var(--text-2); }
 .grid-empty:hover { color: var(--accent); border-color: var(--accent); }
 
 .tile-banner { position: absolute; right: 10px; top: 10px; z-index: 2; font-size: 11px; background: var(--danger); color: #fff; border-radius: 6px; padding: 2px 7px; display: flex; gap: 4px; align-items: center; }
-.tile-banner.muted { background: var(--bg-2); color: var(--text-3); }
+.tile-banner.muted { background: var(--tile); color: var(--text-3); }
 .tile-msg { padding: 14px; display: flex; flex-direction: column; gap: 6px; align-items: flex-start; color: var(--text-2); font-size: 13px; }
 .tile-err { color: var(--danger); font-size: 12px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
 .tile-connect { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; text-align: center; padding: 12px; }
@@ -137,12 +184,12 @@ html.popup, html.popup body { width: 760px; height: 580px; overflow: hidden; }
 @keyframes shimmer { 50% { opacity: 0.45; } }
 
 /* ---------- Sheets (gallery, settings) ---------- */
-.sheet { position: absolute; inset: 0; background: var(--bg); z-index: 10; display: flex; flex-direction: column; animation: sheet 0.14s ease-out; }
+.sheet { position: absolute; inset: 0; border-radius: var(--r); background: linear-gradient(180deg, var(--sheen), transparent 45%), var(--glass-strong); overflow: hidden; z-index: 10; display: flex; flex-direction: column; animation: sheet 0.14s ease-out; }
 @keyframes sheet { from { opacity: 0; transform: translateY(8px); } }
 .sheet-head { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; font-weight: 600; border-bottom: 1px solid var(--line); }
 .sheet-body { overflow-y: auto; padding: 14px 16px; }
 .gallery { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-.gallery-item { display: flex; gap: 12px; text-align: left; padding: 12px; border-radius: 12px; background: var(--bg-2); }
+.gallery-item { display: flex; gap: 12px; text-align: left; padding: 12px; border-radius: 16px; background: var(--bg-2); }
 .gallery-item:hover { background: var(--sel); }
 .gallery-icon { font-size: 24px; }
 .gallery-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }

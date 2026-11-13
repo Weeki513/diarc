@@ -4,7 +4,7 @@ import type { Command } from './commands';
 import { looksLikeUrl } from './env';
 import { widgets } from '../widgets/registry';
 
-export type ResultKind = 'tab' | 'bookmark' | 'history' | 'command' | 'widget-command' | 'url' | 'search';
+export type ResultKind = 'tab' | 'bookmark' | 'history' | 'command' | 'widget-command' | 'url' | 'search' | 'suggest' | 'nav';
 
 export interface Result {
   key: string;
@@ -27,6 +27,8 @@ const KIND_WEIGHT: Record<ResultKind, number> = {
   command: 1.1,
   history: 1,
   search: 0,
+  suggest: 0,
+  nav: 0,
 };
 
 export function prettyUrl(url: string): string {
@@ -108,22 +110,40 @@ export async function asyncResults(q: string): Promise<Result[]> {
   return out;
 }
 
-/** Merge, dedupe by URL (tabs win), rank, and place the web-search row. */
-export function rank(q: string, items: Result[], limit = 12): Result[] {
+/**
+ * Merge, dedupe by URL (tabs win) and order like the omnibox:
+ * best match (typed URL, a strong local hit or the site the query names) → "search the web" →
+ * query suggestions → the rest of tabs/bookmarks/history/commands.
+ */
+export function rank(q: string, items: Result[], web: Result[] = [], limit = 14): Result[] {
+  const query = q.trim();
   const byUrl = new Map<string, Result>();
   const rest: Result[] = [];
-  const pri: ResultKind[] = ['tab', 'bookmark', 'history'];
+  const pri: ResultKind[] = ['tab', 'bookmark', 'history', 'nav'];
+  const urlKey = (u: string) => u.replace(/^https?:\/\/(www\.)?/, '').replace(/#.*$/, '').replace(/\/$/, '');
   for (const r of items) {
     if (!r.url || r.kind === 'url') {
       rest.push(r);
       continue;
     }
-    const key = r.url.replace(/#.*$/, '').replace(/\/$/, '');
+    const key = urlKey(r.url);
     const prev = byUrl.get(key);
     if (!prev || pri.indexOf(r.kind) < pri.indexOf(prev.kind)) byUrl.set(key, prev ? { ...r, score: Math.max(r.score, prev.score) } : r);
   }
-  const all = [...rest, ...byUrl.values()].sort((a, b) => b.score * KIND_WEIGHT[b.kind] - a.score * KIND_WEIGHT[a.kind]).slice(0, limit);
-  const search: Result = { key: 'search', kind: 'search', title: q.trim(), subtitle: 'Искать в интернете', score: 0 };
-  const strong = all.length > 0 && all[0].score * KIND_WEIGHT[all[0].kind] >= 0.9;
-  return strong ? [...all, search] : [search, ...all];
+  const local = [...rest, ...byUrl.values()].sort((a, b) => b.score * KIND_WEIGHT[b.kind] - a.score * KIND_WEIGHT[a.kind]);
+  const search: Result = { key: 'search', kind: 'search', title: query, subtitle: 'Искать в интернете', score: 0 };
+
+  // A site the query names ("yout" → youtube.com), from the suggestion service.
+  const first = query.toLowerCase().split(/\s+/)[0];
+  const navs = web.filter((r) => r.kind === 'nav' && r.url && !byUrl.has(urlKey(r.url)));
+  const namedSite = navs.find((r) => prettyUrl(r.url!).toLowerCase().startsWith(first));
+  const top: Result[] = [];
+  if (local[0] && local[0].score * KIND_WEIGHT[local[0].kind] >= 0.9) top.push(local.shift()!);
+  else if (namedSite) top.push(namedSite);
+
+  const lower = query.toLowerCase();
+  const suggestions = web.filter((r) => r.kind === 'suggest' && r.title.toLowerCase() !== lower).slice(0, 5);
+  const otherNavs = navs.filter((r) => r !== namedSite).slice(0, 2);
+  const localCount = Math.max(4, limit - top.length - 1 - suggestions.length - otherNavs.length);
+  return [...top, search, ...suggestions, ...otherNavs, ...local.slice(0, localCount)];
 }

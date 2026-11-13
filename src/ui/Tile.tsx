@@ -40,7 +40,7 @@ export function TileView(props: {
 
   if (!def) {
     return (
-      <div class="tile" style={style} data-tile={tile.id}>
+      <div class="tile glass" style={style} data-tile={tile.id}>
         {edit && <button class="tile-remove" onClick={props.onRemove}>−</button>}
         <div class="tile-msg">Виджет «{tile.widget}» не найден</div>
       </div>
@@ -120,7 +120,7 @@ export function TileView(props: {
 
   return (
     <div
-      class={`tile tile-${def.id} size-${tile.size} ${edit ? 'jiggle' : ''} ${props.dragging ? 'dragging' : ''}`}
+      class={`tile glass tile-${def.id} size-${tile.size} ${edit ? 'jiggle' : ''} ${props.dragging ? 'dragging' : ''}`}
       style={style}
       data-tile={tile.id}
       onPointerDown={props.onPointerDown}

@@ -58,6 +58,16 @@ function mockCache() {
   const extId = sw.url().split('/')[2];
   console.log('extension id', extId);
 
+  // Mock the suggestion service (no network in CI).
+  await ctx.route(/suggestqueries\.google\.com/, (route) => {
+    const q = new URL(route.request().url()).searchParams.get('q');
+    const ds = new URL(route.request().url()).searchParams.get('ds');
+    const body = q.startsWith('yout') && !ds
+      ? [q, ['https://www.youtube.com/', 'youtube music', 'youtube kids'], ['YouTube', '', ''], [], { 'google:suggesttype': ['NAVIGATION', 'QUERY', 'QUERY'] }]
+      : [q, [q + ' music', q + ' hip hop radio', q + ' beats to study'], ['', '', ''], [], { 'google:suggesttype': ['QUERY', 'QUERY', 'QUERY'] }];
+    route.fulfill({ contentType: 'application/json', body: JSON.stringify(body) });
+  });
+
   // Seed layout + mock data (no real accounts in tests).
   await sw.evaluate(async (cache) => {
     await chrome.storage.local.set({
@@ -123,6 +133,35 @@ function mockCache() {
   await page.screenshot({ path: `${OUT}/2-search.png` });
   const leaked = await page.evaluate(() => window.pageKeys.join(''));
   console.log('keys seen by page:', JSON.stringify(leaked), leaked ? '❌ LEAK' : '✓ isolated');
+
+  // Web suggestions (mocked), site tint and Tab-to-search.
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(100);
+  await toggle();
+  await f.waitForSelector('.root.shown');
+  await page.keyboard.type('yout');
+  await page.waitForTimeout(500);
+  const ytRows = await f.$$eval('.res', (els) => els.map((e) => e.querySelector('.res-title').textContent + ' | ' + e.querySelector('.res-kind').textContent));
+  console.log('results for "yout":', ytRows);
+  const tinted = await f.$eval('.bar', (b) => b.className + ' ' + b.style.getPropertyValue('--site'));
+  console.log('bar tint:', tinted, tinted.includes('tinted') ? '✓' : '❌');
+  await page.screenshot({ path: `${OUT}/2b-suggest.png` });
+  await page.keyboard.press('Tab');
+  await page.keyboard.type('lofi');
+  await page.waitForTimeout(400);
+  const scope = await f.$eval('.bar-scope', (e) => e.textContent).catch(() => null);
+  console.log('tab-to-search scope:', scope, scope === 'YouTube' ? '✓' : '❌');
+  await page.screenshot({ path: `${OUT}/2c-scope.png` });
+  await page.keyboard.press('Backspace'); await page.keyboard.press('Backspace'); await page.keyboard.press('Backspace'); await page.keyboard.press('Backspace');
+  await page.keyboard.press('Backspace');
+  const scopeGone = await f.$('.bar-scope');
+  console.log('backspace leaves scope:', scopeGone ? '❌' : '✓');
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(100);
+  await toggle();
+  await f.waitForSelector('.root.shown');
+  await page.keyboard.type('diarc');
+  await page.waitForTimeout(300);
 
   await page.keyboard.press('Meta+A').catch(() => {});
   await f.fill('.bar input', 't купить молоко завтра в 10');
