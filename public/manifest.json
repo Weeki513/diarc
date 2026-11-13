@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Diarc — Command Bar",
   "short_name": "Diarc",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAnil6OzspfxtbBf9RkjNVAPZYlSeli93grMI5mUyUXVO8jnOev69F3C4iq/z5TrfjRdY9Le96gzCnszOqPIR71k6QM9iKrSELqtrBoLvoYW6g32ACpovbMVVKNQty6cMW2i7x6ZeJkopmygyeLJ44FMBi7lu2CZHR15xZDLi505Nm1G+MC/DruRmxSqgirTcMvHw7TW2UoE06W8jNZIhrlY/ciZjlBGVIUzEwT6h/K1WflSWwOsE+H3ent2lLYJxnae3x7lOZUMHPHDND9wIPHRv2RQVTjsD0MPsi1kekJE8SbESWfC1qMrBHuVL/Mc/ac7XqnFuo8VbLArZMvyR1ywIDAQAB",
   "description": "Arc-style command bar for Dia: search tabs, history and bookmarks, plus Calendar, Gmail and TickTick widgets.",
   "minimum_chrome_version": "120",

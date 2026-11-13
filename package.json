@@ -1,6 +1,6 @@
 {
   "name": "diarc",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "description": "Arc-style command bar for Dia Browser: search tabs, history, bookmarks and live widgets (Calendar, Gmail, TickTick) in an overlay.",
   "type": "module",

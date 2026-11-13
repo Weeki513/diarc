@@ -88,4 +88,4 @@ Store screenshots are in `docs/screenshots/`: home, search, tab-search, ghost, e
 ## After the first upload
 - Add the store version's Redirect URI (`https://<store ID>.chromiumapp.org/`) as a second address in the Google and TickTick clients (see `docs/OAUTH.md`).
 - If you want the unpacked build to have the same ID as the store one, replace `"key"` in `public/manifest.json` with the Public key from the Developer Dashboard (Package → View public key).
-- For every update, bump `version` in `public/manifest.json` and `package.json`, then run `npm run zip`.
+- For every update, bump `version` in `public/manifest.json` and `package.json`, add a section to `CHANGELOG.md` (it is the release text), then run `npm run zip`.
