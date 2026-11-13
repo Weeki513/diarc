@@ -50,7 +50,7 @@ function Options() {
   return (
     <div class="opt">
       <header>
-        <h1>Diarc</h1>
+        <h1 class="brand"><img src="/icons/128.png" alt="" width="40" height="40" />Diarc</h1>
         <span class={`saved ${saved ? 'on' : ''}`}>Сохранено</span>
       </header>
 

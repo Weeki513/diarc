@@ -4,6 +4,8 @@ body { margin: 0; --bg-2: #f2f2f5; --tile-shadow: 0 1px 2px rgba(0,0,0,.05), 0 0
 }
 .opt { max-width: 640px; margin: 0 auto; padding: 32px 20px 60px; }
 .opt header { display: flex; align-items: center; justify-content: space-between; }
+.opt h1.brand { display: flex; align-items: center; gap: 10px; }
+.opt h1.brand img { width: 40px; height: 40px; margin: -6px -2px -6px -6px; filter: drop-shadow(0 4px 10px rgba(90, 120, 230, .25)); }
 .opt h1 { font-size: 26px; margin: 0 0 16px; letter-spacing: -0.02em; }
 .opt h2 { font-size: 15px; margin: 0 0 10px; }
 .opt section { background: var(--bg); border-radius: 14px; padding: 18px 20px; margin-bottom: 14px; box-shadow: var(--tile-shadow); display: flex; flex-direction: column; gap: 10px; }
