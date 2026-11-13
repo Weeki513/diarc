@@ -12,6 +12,10 @@ Read **docs/WIDGETS.md** first. It is the complete contract. Short version:
 
 Widgets are auto-registered (`import.meta.glob`); do not edit a registry.
 
+## If you were asked to add an ambient creature
+Read **docs/CREATURES.md**. `npm run new-creature -- <id> "<Имя>"` creates `src/ambient/creatures/<id>.ts`
+(auto-registered). Draw sprites with `fromAscii` or `canvas`; keep them slow and calm.
+
 ## Commands
 - `npm run build` → `dist/` (load unpacked). `npm run dev` rebuilds on change.
 - `npm run typecheck` must pass.

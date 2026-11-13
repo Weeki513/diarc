@@ -11,7 +11,8 @@
     "icons": "node scripts/icons.mjs",
     "new-widget": "node scripts/new-widget.mjs",
     "zip": "node scripts/zip.mjs",
-    "test:e2e": "node scripts/e2e.cjs"
+    "test:e2e": "node scripts/e2e.cjs",
+    "new-creature": "node scripts/new-creature.mjs"
   },
   "license": "MIT",
   "devDependencies": {

@@ -49,6 +49,7 @@ type W = Window & { __diarc?: boolean };
       .bar input { color: #f2f2f4; } .bar svg { stroke: #fff; }
     }
     iframe { z-index: 1; } .shell { z-index: 2; }
+    iframe.ambient { left: 0; top: 0; transform: none; width: 100vw; height: 100vh; pointer-events: none; z-index: 0; visibility: visible; }
     ${GLASS_CSS}`;
 
   function ensureHost(): void {
@@ -71,6 +72,49 @@ type W = Window & { __diarc?: boolean };
     );
     window.addEventListener('resize', () => open && sendViewport());
     document.documentElement.append(host);
+  }
+
+  // ---- Ambient creatures (ambient.html in its own click-through iframe, under the glass) ----
+  type Amb = { show?: 'off' | 'bar' | 'always'; exclude?: string[] };
+  let amb: Amb = { show: 'bar' };
+  let ambFrame: HTMLIFrameElement | null = null;
+  let ambRaf = 0;
+  let ambPt: { x: number; y: number } | null = null;
+  const hostName = location.hostname.replace(/^www\./, '');
+  const ambAllowed = () => amb.show !== 'off' && !(amb.exclude ?? []).some((h) => hostName === h || hostName.endsWith(`.${h}`));
+  const ambPost = (m: unknown) => ambFrame?.contentWindow?.postMessage(m, ORIGIN);
+  const ambMove = (e: MouseEvent) => {
+    ambPt = { x: e.clientX, y: e.clientY };
+    if (!ambRaf) ambRaf = requestAnimationFrame(() => { ambRaf = 0; if (ambPt) ambPost({ diarc: 'amb-pointer', ...ambPt }); });
+  };
+  const ambClick = (e: MouseEvent) => ambPost({ diarc: 'amb-click', x: e.clientX, y: e.clientY });
+  const ambOut = () => ambPost({ diarc: 'amb-leave' });
+
+  function ambient(on: boolean): void {
+    on = on && ambAllowed();
+    if (on && !ambFrame) {
+      ensureHost();
+      ambFrame = document.createElement('iframe');
+      ambFrame.className = 'ambient';
+      ambFrame.src = chrome.runtime.getURL('ambient.html');
+      ambFrame.setAttribute('allowtransparency', 'true');
+      root!.prepend(ambFrame);
+    }
+    if (!ambFrame) return;
+    ambFrame.style.display = on ? 'block' : 'none';
+    ambPost({ diarc: on ? 'amb-play' : 'amb-pause' });
+    if (on && !open) host!.style.display = 'block';
+    const f = on ? addEventListener : removeEventListener;
+    f('mousemove', ambMove as EventListener, true);
+    f('click', ambClick as EventListener, true);
+    document.documentElement[on ? 'addEventListener' : 'removeEventListener']('mouseleave', ambOut);
+  }
+  /** Apply the ambient setting to this page (always-on pages start once idle). */
+  function ambientSync(): void {
+    const always = amb.show === 'always' && ambAllowed() && document.visibilityState === 'visible';
+    if (always) requestIdleCallback(() => ambient(true), { timeout: 2000 });
+    else if (!open || amb.show !== 'bar') ambient(false);
+    if (!open && !always && host) host.style.display = 'none';
   }
 
   function ensureFrame(): void {
@@ -180,6 +224,7 @@ type W = Window & { __diarc?: boolean };
     ensureFrame();
     host!.style.display = 'block';
     open = true;
+    if (amb.show === 'bar') ambient(true);
     if (ready) reveal();
     else showShell();
   }
@@ -188,7 +233,11 @@ type W = Window & { __diarc?: boolean };
     if (!open) return;
     open = false;
     post({ diarc: 'hide' });
-    host!.style.display = 'none';
+    if (amb.show === 'always' && ambFrame && ambAllowed()) host!.style.display = 'block';
+    else {
+      host!.style.display = 'none';
+      ambient(false);
+    }
     if (frame) frame.style.visibility = 'hidden';
     glass?.clear();
     live(false);
@@ -237,11 +286,14 @@ type W = Window & { __diarc?: boolean };
 
   // ---- Prewarm / unload ----
   let prewarm = true;
-  type S = { prewarm?: boolean; glass?: GlassMode; glassTune?: Tune } | undefined;
+  type S = { prewarm?: boolean; glass?: GlassMode; glassTune?: Tune; ambient?: Amb } | undefined;
   chrome.storage.local.get('settings').then((r) => {
     prewarm = (r.settings as S)?.prewarm ?? true;
     glassMode = (r.settings as S)?.glass ?? 'liquid';
     glassTune = (r.settings as S)?.glassTune;
+    amb = { show: 'bar', ...(r.settings as S)?.ambient };
+    if (document.readyState === 'complete') ambientSync();
+    else addEventListener('load', ambientSync, { once: true });
     glass?.setMode(glassMode);
     if (glassTune) glass?.setTune(glassTune);
     schedulePrewarm();
@@ -249,6 +301,8 @@ type W = Window & { __diarc?: boolean };
   chrome.storage.onChanged.addListener((c, area) => {
     if (area !== 'local' || !c.settings) return;
     const next = c.settings.newValue as S;
+    amb = { show: 'bar', ...next?.ambient };
+    ambientSync();
     glassMode = next?.glass ?? 'liquid';
     glass?.setMode(glassMode);
     if (next?.glassTune && JSON.stringify(next.glassTune) !== JSON.stringify(glassTune)) glass?.setTune((glassTune = next.glassTune));
@@ -264,6 +318,7 @@ type W = Window & { __diarc?: boolean };
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') {
       clearTimeout(unloadTimer);
+      ambientSync();
       schedulePrewarm();
     } else {
       hide();

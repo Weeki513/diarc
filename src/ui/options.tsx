@@ -6,6 +6,7 @@ import './styles.css';
 import './options.css';
 import { BUILTIN_ENGINES, type Engine } from '../shared/engines';
 import { GlassSection } from './options-glass';
+import { AmbientSection } from './options-ambient';
 
 type Status = Record<'google' | 'ticktick', { connected: boolean; scopes?: string[] }>;
 
@@ -94,6 +95,8 @@ function Options() {
       </section>
 
       <GlassSection settings={s} update={update} />
+
+      <AmbientSection settings={s} update={update} />
 
       <Engines engines={s.engines ?? []} onChange={(engines) => update({ engines })} />
 

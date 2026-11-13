@@ -181,5 +181,12 @@ export function builtinCommands(hooks: { editWidgets(): void; refreshWidgets(): 
       icon: '⌨',
       run: () => openUrl('chrome://extensions/shortcuts'),
     },
+    {
+      id: 'aquarium',
+      title: 'Аквариум',
+      keywords: 'aquarium ambient creatures ascii аквариум существа скаты светлячки',
+      icon: '🐢',
+      run: () => openUrl(chrome.runtime.getURL('ambient.html?mode=tab')),
+    },
   ];
 }

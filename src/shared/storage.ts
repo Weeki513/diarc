@@ -33,6 +33,7 @@ export interface Settings {
   /** Your own Tab-to-search sites. */
   engines: Engine[];
   glassTune: GlassTune;
+  ambient: AmbientSettings;
 }
 
 /** Liquid glass tuning (Настройки → Жидкое стекло). */
@@ -58,6 +59,39 @@ export interface GlassTune {
 
 export const DEFAULT_GLASS_TUNE: GlassTune = { blur: 1.1, refraction: 1, bezel: 34, chroma: 0.32, saturation: 1.45, tint: 0.55, rim: 1, light: 260, haze: 2.5 };
 
+/** Ambient ASCII creatures (Настройки → Существа). */
+/** A creature id from src/ambient/creatures (or 'mix'). */
+export type Species = string;
+export interface AmbientSettings {
+  /** On sites: off, only behind the open bar, or always floating over pages. */
+  show: 'off' | 'bar' | 'always';
+  species: Species;
+  count: number;
+  speed: number;
+  /** Cell size in px (the size of one "pixel" of a creature). */
+  cell: number;
+  /** Trail length in frames, 0 = no trail. */
+  trail: number;
+  /** Characters used for trails; empty = the species' own. */
+  chars: string;
+  /** '' = natural colours, otherwise one hex colour the palette is built from. */
+  color: string;
+  opacity: number;
+  grid: boolean;
+  /** How creatures react to the cursor. */
+  cursor: 'flee' | 'follow' | 'none';
+  fps: 15 | 30 | 60;
+  /** Where on the page they live. */
+  area: 'full' | 'bottom' | 'edges';
+  /** Sites where they never appear (host names). */
+  exclude: string[];
+}
+
+export const DEFAULT_AMBIENT: AmbientSettings = {
+  show: 'bar', species: 'manta', count: 10, speed: 0.8, cell: 9, trail: 22, chars: '', color: '', opacity: 0.6,
+  grid: true, cursor: 'flee', fps: 30, area: 'full', exclude: [],
+};
+
 export const DEFAULT_SETTINGS: Settings = {
   googleClientId: import.meta.env.VITE_GOOGLE_CLIENT_ID ?? '',
   tickTickClientId: import.meta.env.VITE_TICKTICK_CLIENT_ID ?? '',
@@ -69,6 +103,7 @@ export const DEFAULT_SETTINGS: Settings = {
   suggest: 'google',
   engines: [],
   glassTune: DEFAULT_GLASS_TUNE,
+  ambient: DEFAULT_AMBIENT,
 };
 
 export const DEFAULT_LAYOUT: Tile[] = [

@@ -90,6 +90,10 @@ function mockCache() {
   }
   for (const p of ctx.pages()) if (p.url() === 'about:blank' && ctx.pages().length > 1) await p.close().catch(() => {});
 
+  await sw.evaluate(async () => {
+    const r = await chrome.storage.local.get('settings');
+    await chrome.storage.local.set({ settings: { ...(r.settings || {}), ambient: { show: 'bar', species: 'manta', count: 14 } } });
+  });
   const page = await ctx.newPage();
   await page.goto('http://localhost:8765/page');
   await page.waitForTimeout(1500); // allow idle prewarm

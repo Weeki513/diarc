@@ -21,6 +21,7 @@ export default defineConfig({
       input: {
         overlay: resolve(__dirname, 'src/pages/overlay.html'),
         options: resolve(__dirname, 'src/pages/options.html'),
+        ambient: resolve(__dirname, 'src/pages/ambient.html'),
         background: resolve(__dirname, 'src/background/index.ts'),
       },
       output: {
