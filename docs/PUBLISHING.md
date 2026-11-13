@@ -1,20 +1,21 @@
-# Публикация в Chrome Web Store
+# Publishing to the Chrome Web Store
 
-Dia ставит расширения из Chrome Web Store. Публикация бесплатная, кроме разового взноса **$5** за аккаунт разработчика.
+Dia installs extensions from the Chrome Web Store. Publishing is free apart from a one-time **$5** developer registration fee.
 
-## Перед первой загрузкой
-1. Аккаунт: [Chrome Web Store Developer Dashboard](https://chrome.google.com/webstore/devconsole) → оплатить $5, подтвердить email.
-2. Заполнить `.env` (см. `.env.example`) Client ID Google и TickTick, если хотите, чтобы они работали «из коробки».
-3. `npm run zip` → получится `diarc.zip`. Скрипт убирает из манифеста поле `key` (оно нужно только для постоянного ID распакованной версии; стор назначает свой ID).
+## Before the first upload
+1. Account: [Chrome Web Store Developer Dashboard](https://chrome.google.com/webstore/devconsole) → pay the $5, confirm your email.
+2. Optionally fill in `.env` (see `.env.example`) with Google and TickTick Client IDs so they work out of the box.
+3. `npm run zip` → produces `diarc.zip`. The script strips the `key` field from the manifest (it only pins the ID of the
+   unpacked build; the store assigns its own ID).
 
-## Тексты для карточки
+## Listing texts
 
-Короткое описание (поле Summary, до 132 символов):
+Short description (Summary field, up to 132 characters):
 
 - RU: `Командная строка как в Arc для Dia: ⌘T открывает поиск поверх страницы, а не новую вкладку. Виджеты, Tab-поиск, жидкое стекло.` (126)
 - EN: `Arc-style command bar for Dia: ⌘T opens search over the current page, not a new tab. Widgets, Tab-to-search, liquid glass.` (122)
 
-Полное описание (RU):
+Full description (Russian):
 
 ```
 Diarc возвращает в Dia простоту Arc: по ⌘T поверх текущей страницы появляется строка поиска, а не новая вкладка.
@@ -38,7 +39,7 @@ Diarc возвращает в Dia простоту Arc: по ⌘T поверх �
 Исходный код: https://github.com/Weeki513/diarc
 ```
 
-Full description (EN):
+Full description (English):
 
 ```
 Diarc brings Arc's simplicity back to Dia: ⌘T opens a search bar right over the page you're on instead of a new tab.
@@ -62,28 +63,29 @@ Default shortcut is Ctrl+Shift+Space. How to map it to ⌘T with Karabiner-Eleme
 Source code: https://github.com/Weeki513/diarc
 ```
 
-Скриншоты для карточки лежат в `docs/screenshots/`: home, search, tab-search, ghost, edit, dark и creatures уже 1280×800. Остальные стор не примет, их сначала нужно
-дополнить полями до 1280×800.
+Store screenshots are in `docs/screenshots/`: home, search, tab-search, ghost, edit, dark and creatures are already
+1280×800. The store won't accept the others until they're padded to 1280×800.
 
-## Карточка в сторе
-- Название, описание (RU/EN), категория **Productivity**.
-- Иконка 128×128 (`public/icons/128.png`, с прозрачными полями 16 px, как требует стор). Логотип в большом размере для
-  промо-плиток и соцсетей: `assets/logo/diarc-512.png` (плитка) и `assets/logo/source-sparkle.png` (одна звезда).
-  Иконки пересобираются из логотипа командой `npm run icons`, минимум один скриншот 1280×800 (см. `docs/screenshots/`).
+## Store listing
+- Name, description (EN/RU), category **Productivity**.
+- Icon 128×128: `public/icons/128.png` (with the 16 px transparent margin the store asks for). At least one 1280×800
+  screenshot (see `docs/screenshots/`).
+- Large logo for promo tiles and social media: `assets/logo/diarc-512.png` (tile) and `assets/logo/source-sparkle.png`
+  (sparkle only). Icons are rebuilt from the logo with `npm run icons`.
 - **Privacy practices**:
-  - Single purpose: «Командная строка поверх страницы для поиска по вкладкам, истории и закладкам и просмотра виджетов календаря, почты и задач».
-  - Обоснование разрешений:
-    - `tabs`, `history`, `bookmarks`, `favicon`, `search` — поиск и переключение вкладок, поиск по истории и закладкам, иконки сайтов, поиск в интернете.
-    - `<all_urls>` и `scripting` — показ бара поверх любой открытой страницы (контент-скрипт) и запросы виджетов к API (Google, TickTick, Open-Meteo).
-    - `storage`, `alarms` — кеш данных виджетов и их фоновое обновление.
-    - `identity` — вход в Google и TickTick через OAuth.
+  - Single purpose: "A command bar over the current page for searching tabs, history, bookmarks and the web, and viewing calendar, mail and task widgets."
+  - Permission justifications:
+    - `tabs`, `history`, `bookmarks`, `favicon`, `search`: searching and switching tabs, searching history and bookmarks, site icons, web search.
+    - `<all_urls>` and `scripting`: showing the bar over any open page (content script) and widget requests to APIs (Google, TickTick, Open-Meteo).
+    - `storage`, `alarms`: widget data cache and background refresh.
+    - `identity`: signing in to Google and TickTick with OAuth.
   - Remote code: **No**.
-  - Data usage: отметьте «Personal communications» (Gmail), «Personal information»/«Website content» по необходимости,
-    подтвердите, что данные не продаются и не передаются третьим лицам. Ссылка на политику: опубликуйте `docs/PRIVACY.md`
-    (например, через GitHub Pages: Settings → Pages → `main` / `docs`).
-- Широкий доступ `<all_urls>` удлиняет ревью (обычно несколько дней). Это нормально.
+  - Data usage: tick "Personal communications" (Gmail), and "Personal information" / "Website content" as needed;
+    confirm that data is not sold or transferred to third parties. Privacy policy link: publish `docs/PRIVACY.md`
+    (for example with GitHub Pages: Settings → Pages → `main` / `docs`).
+- Broad `<all_urls>` access makes the review longer (usually a few days). That's normal.
 
-## После первой загрузки
-- Добавьте Redirect URI сторовой версии (`https://<ID из стора>.chromiumapp.org/`) вторым адресом в клиенты Google и TickTick (см. `docs/OAUTH.md`).
-- Если хотите, чтобы распакованная версия имела тот же ID, что и сторовая, замените `"key"` в `public/manifest.json` на Public key из Developer Dashboard (Package → View public key).
-- Для каждого обновления поднимайте `version` в `public/manifest.json` и `package.json`, затем `npm run zip`.
+## After the first upload
+- Add the store version's Redirect URI (`https://<store ID>.chromiumapp.org/`) as a second address in the Google and TickTick clients (see `docs/OAUTH.md`).
+- If you want the unpacked build to have the same ID as the store one, replace `"key"` in `public/manifest.json` with the Public key from the Developer Dashboard (Package → View public key).
+- For every update, bump `version` in `public/manifest.json` and `package.json`, then run `npm run zip`.

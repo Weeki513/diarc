@@ -32,5 +32,5 @@ Read **docs/CREATURES.md**. `npm run new-creature -- <id> "<Имя>"` creates `s
 - MV3: no remote code, no `eval`, no CDN scripts. Everything ships in the bundle.
 - Keep the content script tiny and dependency-free. Never render widget data into the page DOM (privacy: pages could read it).
 - Keep bundles small: no UI libraries beyond Preact; prefer the kit in `src/ui/kit.tsx` and CSS in `src/ui/styles.css`.
-- User-facing strings are Russian.
+- User-facing strings are Russian. Docs and code comments are English.
 - Don't request new permissions in `public/manifest.json` without a reason; `<all_urls>` host access already covers widget APIs.

@@ -1,93 +1,96 @@
-# Подключение Google и TickTick: пошагово
+# Connecting Google and TickTick, step by step
 
-Делается один раз, минут 15. Без этого уже работают поиск, ссылки, погода и Gmail в простом режиме.
+You do this once; it takes about 15 minutes. Without it, search, links, weather and Gmail in simple mode already work.
 
-**Redirect URI** (одинаковый для Google и TickTick):
+The Diarc interface is in Russian, so button names are given as they appear, with a translation.
+
+**Redirect URI** (the same for Google and TickTick):
 
 ```
 https://lllpoldkalcfacagomdhjphhglmagikg.chromiumapp.org/
 ```
 
-Он постоянный: ID расширения закреплён ключом `key` в `public/manifest.json`, поэтому не зависит от папки,
-из которой вы загрузили расширение. Тот же адрес показан в настройках Diarc (кнопка «Копировать»).
-У версии из Web Store будет другой ID: после публикации добавьте её Redirect URI вторым адресом (см. `docs/PUBLISHING.md`).
+It never changes: the extension ID is pinned by the `key` field in `public/manifest.json`, so it doesn't depend on the
+folder you loaded the extension from. Diarc settings show the same address (the **Копировать** / Copy button).
+The Web Store version will have a different ID: after publishing, add its Redirect URI as a second address
+(see `docs/PUBLISHING.md`).
 
 ---
 
-## Часть 1. Google (Календарь)
+## Part 1. Google (Calendar)
 
-### 1.1 Проект
-1. Откройте https://console.cloud.google.com/ и войдите тем аккаунтом Google, чей календарь нужен.
-2. Вверху слева нажмите на выбор проекта → **New project**.
-3. Project name: `Diarc` → **Create**. Дождитесь уведомления и выберите проект `Diarc` в том же меню.
+### 1.1 Project
+1. Open https://console.cloud.google.com/ and sign in with the Google account whose calendar you want.
+2. Click the project picker at the top left → **New project**.
+3. Project name: `Diarc` → **Create**. Wait for the notification and select the `Diarc` project in the same menu.
 
-### 1.2 Включить API
-1. Откройте https://console.cloud.google.com/apis/library/calendar-json.googleapis.com → **Enable**.
-2. Если нужен режим «Gmail API» (архив и «прочитано»): https://console.cloud.google.com/apis/library/gmail.googleapis.com → **Enable**. Можно пропустить.
+### 1.2 Enable the APIs
+1. Open https://console.cloud.google.com/apis/library/calendar-json.googleapis.com → **Enable**.
+2. If you want the "Gmail API" mode (archive and mark as read): https://console.cloud.google.com/apis/library/gmail.googleapis.com → **Enable**. Optional.
 
-### 1.3 Экран согласия
-1. Откройте https://console.cloud.google.com/auth/overview → **Get started**.
-2. **App information**: App name `Diarc`, User support email — ваш адрес → **Next**.
-3. **Audience**: выберите **External** → **Next**.
-4. **Contact information**: ваш адрес → **Next**.
-5. Поставьте галочку согласия с политикой → **Continue** → **Create**.
+### 1.3 Consent screen
+1. Open https://console.cloud.google.com/auth/overview → **Get started**.
+2. **App information**: App name `Diarc`, User support email: your address → **Next**.
+3. **Audience**: choose **External** → **Next**.
+4. **Contact information**: your address → **Next**.
+5. Tick the policy checkbox → **Continue** → **Create**.
 
-### 1.4 Разрешения (scopes)
-1. Слева **Data Access** → **Add or remove scopes**.
-2. В поле фильтра вставьте `calendar.events`, отметьте строку `.../auth/calendar.events`.
-3. Для Gmail API дополнительно отметьте `.../auth/gmail.modify` (можно пропустить).
-4. **Update** → внизу страницы **Save**.
+### 1.4 Scopes
+1. On the left, **Data Access** → **Add or remove scopes**.
+2. Paste `calendar.events` into the filter and tick the `.../auth/calendar.events` row.
+3. For the Gmail API, also tick `.../auth/gmail.modify` (optional).
+4. **Update** → **Save** at the bottom of the page.
 
-### 1.5 Тестовый пользователь
-1. Слева **Audience** → блок **Test users** → **+ Add users**.
-2. Впишите свой Gmail-адрес → **Save**.
+### 1.5 Test user
+1. On the left, **Audience** → **Test users** → **+ Add users**.
+2. Enter your Gmail address → **Save**.
 
-Приложение остаётся в режиме Testing: им можете пользоваться вы и до 100 добавленных людей. Для всех остальных нужна верификация (`docs/PUBLISHING.md`).
+The app stays in Testing mode: you and up to 100 added people can use it. Everyone else would need verification (`docs/PUBLISHING.md`).
 
-### 1.6 Клиент OAuth
-1. Слева **Clients** → **+ Create client**.
-2. Application type: **Web application** (не «Chrome extension»: тот вариант в Dia не работает).
+### 1.6 OAuth client
+1. On the left, **Clients** → **+ Create client**.
+2. Application type: **Web application** (not "Chrome extension": that option doesn't work in Dia).
 3. Name: `Diarc`.
-4. **Authorized JavaScript origins** — ничего не добавляйте.
-5. **Authorized redirect URIs** → **+ Add URI** → вставьте Redirect URI сверху (со слешем в конце).
-6. **Create**. В окне скопируйте **Client ID** (`…apps.googleusercontent.com`). Client secret не нужен.
+4. **Authorized JavaScript origins**: leave empty.
+5. **Authorized redirect URIs** → **+ Add URI** → paste the Redirect URI from above (with the trailing slash).
+6. **Create**. Copy the **Client ID** (`…apps.googleusercontent.com`) from the dialog. You don't need the client secret.
 
-### 1.7 Подключить в Diarc
-1. Правый клик по иконке Diarc → **Options** (или в баре наберите «Настройки Diarc» → ↵).
-2. Раздел **Google** → поле **Client ID** → вставьте → кликните вне поля (сохранится, появится «Сохранено»).
-3. **Подключить** → выберите аккаунт → на экране «Google hasn't verified this app» нажмите **Continue** → разрешите доступ.
-4. Статус станет «Подключено». Откройте бар: плитка календаря заполнится.
+### 1.7 Connect it in Diarc
+1. Right-click the Diarc icon → **Options** (or type "Настройки Diarc" in the bar → ↵).
+2. **Google** section → **Client ID** field → paste → click outside the field (it saves and shows «Сохранено» / Saved).
+3. **Подключить** (Connect) → choose your account → on the "Google hasn't verified this app" screen click **Continue** → allow access.
+4. The status changes to «Подключено» (Connected). Open the bar: the calendar tile fills in.
 
-Для режима Gmail API: в баре ▦ → шестерёнка на плитке Gmail → Режим «Gmail API» → Сохранить → «Подключить» на плитке.
+For the Gmail API mode: in the bar, ▦ → gear on the Gmail tile → mode «Gmail API» → Save → **Подключить** on the tile.
 
 ---
 
-## Часть 2. TickTick
+## Part 2. TickTick
 
-1. Откройте https://developer.ticktick.com/ и войдите своим аккаунтом TickTick.
-2. Справа вверху **Manage Apps** → **+ App Name**.
+1. Open https://developer.ticktick.com/ and sign in with your TickTick account.
+2. Top right, **Manage Apps** → **+ App Name**.
 3. Name: `Diarc` → **Add**.
-4. Нажмите на созданное приложение → **Edit**.
-5. **OAuth redirect URL**: вставьте Redirect URI сверху → **Save**.
-6. На этой же странице скопируйте **Client ID** и **Client Secret**.
-7. Настройки Diarc → раздел **TickTick** → вставьте оба поля → **Подключить** → **Allow**.
+4. Click the new app → **Edit**.
+5. **OAuth redirect URL**: paste the Redirect URI from above → **Save**.
+6. On the same page, copy the **Client ID** and **Client Secret**.
+7. Diarc settings → **TickTick** section → paste both → **Подключить** (Connect) → **Allow**.
 
-Токен TickTick живёт около полугода, потом плитка попросит нажать «Подключить» снова.
+The TickTick token lasts about six months; after that the tile asks you to press **Подключить** again.
 
 ---
 
-## Если что-то не так
-- **Error 400: redirect_uri_mismatch** — адрес в Google/TickTick не совпадает символ в символ. Проверьте `https://` и `/` в конце.
-- **Error 403: access_denied** — ваш адрес не добавлен в Test users (шаг 1.5).
-- **«Укажите Google Client ID в настройках»** — Client ID не сохранился: вставьте ещё раз и кликните вне поля.
-- **Плитка через час снова просит «Подключить»** — молча продлить вход не получилось (например, вы вышли из Google в браузере). Нажмите «Подключить».
+## Troubleshooting
+- **Error 400: redirect_uri_mismatch**: the address in Google/TickTick doesn't match character for character. Check `https://` and the trailing `/`.
+- **Error 403: access_denied**: your address isn't in Test users (step 1.5).
+- **«Укажите Google Client ID в настройках»** ("Set the Google Client ID in settings"): the Client ID wasn't saved. Paste it again and click outside the field.
+- **The tile asks to connect again after an hour**: silent sign-in renewal failed (for example, you signed out of Google in the browser). Press **Подключить**.
 
-## Для сборки с вшитыми ключами
-Чтобы не вводить ключи в настройках (например, для Web Store), скопируйте `.env.example` в `.env`, заполните
-`VITE_GOOGLE_CLIENT_ID`, `VITE_TICKTICK_CLIENT_ID`, `VITE_TICKTICK_CLIENT_SECRET` и выполните `npm run build`.
-Учтите, что секрет TickTick, вшитый в публичное расширение, можно извлечь из пакета.
+## Building with embedded keys
+To skip entering keys in settings (for example, for the Web Store), copy `.env.example` to `.env`, fill in
+`VITE_GOOGLE_CLIENT_ID`, `VITE_TICKTICK_CLIENT_ID`, `VITE_TICKTICK_CLIENT_SECRET` and run `npm run build`.
+Keep in mind that a TickTick secret embedded in a public extension can be extracted from the package.
 
-## Почему Gmail по умолчанию без OAuth
-Любой доступ к письмам через Gmail API (включая `gmail.modify`) Google считает **restricted** и для публичных приложений
-требует платный аудит безопасности. Поэтому по умолчанию Gmail читает Atom-ленту непрочитанных через вашу обычную
-сессию Gmail в браузере, а архив и «прочитано» доступны только с собственным OAuth-клиентом в режиме Testing.
+## Why Gmail works without OAuth by default
+Google treats any mail access through the Gmail API (including `gmail.modify`) as **restricted** and requires a paid
+security audit for public apps. So by default Gmail reads the unread Atom feed through your regular Gmail session in the
+browser, and archive and mark-as-read are only available with your own OAuth client in Testing mode.

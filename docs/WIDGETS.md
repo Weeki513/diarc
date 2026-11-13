@@ -1,7 +1,7 @@
 # Writing Diarc widgets
 
-> Для людей: этот файл написан как инструкция для AI-агента (Claude Code, Cursor и т.п.).
-> Дайте агенту задачу вида «сделай виджет Diarc, который показывает …» и укажите на этот файл.
+> For humans: this file is written as instructions for an AI agent (Claude Code, Cursor, etc.).
+> Give the agent a task like "make a Diarc widget that shows …" and point it at this file.
 
 This document is the full contract for widgets. Follow it exactly; you should not need to read other code.
 
@@ -77,7 +77,7 @@ extension (`dia://extensions` → ↻). Then open the bar → ▦ → **+** → 
 | `name`, `description`, `icon` | `string` | shown in gallery and headers |
 | `sizes` | `('S'\|'M'\|'L'\|'XL')[]` | S = 1×1, M = 2×1, L = 2×2, XL = 4×2 cells on a 4-column grid; a cell is ~165×150 px; lists must scroll (use `<Scroll>`), never cut items |
 | `defaultSize` | size | used when added |
-| `auth?` | `{ provider: 'google' \| 'ticktick', scopes?: string[] }` or `(config) => that \| undefined` | the tile shows a «Подключить» button automatically when auth is missing |
+| `auth?` | `{ provider: 'google' \| 'ticktick', scopes?: string[] }` or `(config) => that \| undefined` | the tile shows a «Подключить» (Connect) button automatically when auth is missing |
 | `refreshMinutes?` | `number` | default 10 |
 | `settings?` | `WidgetSetting[]` | rendered as a form in edit mode (gear icon) |
 | `fetch?` | `(ctx) => Promise<Data>` | omit for static widgets (see `links`) |
@@ -98,7 +98,7 @@ ctx.instanceId: string
 ctx.config: Config
 ctx.http<T>(url, { method?, headers?, json?, as?: 'json'|'text'|'none', auth?: {provider, scopes?}, ...RequestInit }): Promise<T>
   // - adds `Authorization: Bearer` when `auth` is set, retries once on 401 with a fresh token
-  // - throws AuthRequiredError (tile shows «Подключить») or HttpError(status, message)
+  // - throws AuthRequiredError (tile shows «Подключить» / Connect) or HttpError(status, message)
 ctx.token({provider, scopes?}): Promise<string>   // raw token if you need it
 ctx.store.get(key) / ctx.store.set(key, value)    // small persistent per-tile KV (cursors, etags)
 ```
@@ -130,7 +130,7 @@ Use these; they follow light/dark themes.
 | `<div class="k-pad">` / `<div class="k-pad k-col">` | tile padding / vertical layout (put `<Scroll>` in the middle, `<AddInput>` at the bottom) |
 | `Header({ title, icon?, right?, onClick? })` | small uppercase title row |
 | `Scroll` | scrollable area that fills remaining height |
-| `Group({ label })` | labelled section ("Сегодня") |
+| `Group({ label })` | labelled section ("Сегодня", Today) |
 | `Row({ title, subtitle?, meta?, leading?, actions?, onClick?, active?, muted? })` | list row; `actions` appear on hover |
 | `IconButton({ title, onClick, danger? })` + icons (`IconTrash`, `IconPencil`, `IconArchive`, `IconMailOpen`, `IconCheck`, `IconPlus`, `IconExternal`, …) | row actions |
 | `Check({ checked, onChange, color? })` | task checkbox |
@@ -190,7 +190,7 @@ For APIs with personal tokens, prefer a `settings` field of type `text` instead 
 - [ ] `fetch` returns JSON-serialisable, small data; dates are ISO strings.
 - [ ] Every size in `sizes` renders sensibly (no overflow; long text truncates).
 - [ ] Network only in `fetch`/`actions`/`commands`, via `ctx.http`.
-- [ ] Strings shown to the user are Russian.
+- [ ] Strings shown to the user are Russian (the current UI language).
 - [ ] `npm run typecheck` and `npm run build` pass.
 - [ ] No new permissions in the manifest, no remote scripts.
 

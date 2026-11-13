@@ -1,17 +1,17 @@
 # Creatures: how to add your own
 
-The ambient layer ("Существа") draws small pixel creatures that swim over pages under the bar's
-glass, and in the «Аквариум» tab. Every creature is one file in `src/ambient/creatures/`. Files are
+The ambient layer («Существа», Creatures) draws small pixel creatures that swim over pages under the bar's
+glass, and in the «Аквариум» (Aquarium) tab. Every creature is one file in `src/ambient/creatures/`. Files are
 picked up automatically at build time (`import.meta.glob`), so there is no list to edit.
 
 ## Quick start
 
 ```sh
-npm run new-creature -- koi-moth "Мотыльки"   # creates src/ambient/creatures/koi-moth.ts
+npm run new-creature -- koi-moth "Мотыльки"   # creates src/ambient/creatures/koi-moth.ts (the name is shown in the Russian UI)
 npm run typecheck && npm run build              # then reload the extension
 ```
 
-Pick it in **Настройки → Существа**, or in the picker at the top of the «Аквариум» tab.
+Pick it in **Настройки → Существа** (Settings → Creatures), or in the picker at the top of the «Аквариум» tab.
 
 ## The contract
 
