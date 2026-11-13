@@ -4,7 +4,7 @@ import { DEFAULT_GLASS_TUNE, type GlassTune } from '../shared/storage';
 import { builtinCommands } from './commands';
 import { MODE, TAB_ORIGIN, closeBar, favicon, focusTab, looksLikeUrl, openUrl, setCloser, webSearch } from './env';
 import { useSnapshot, type Snapshot } from './hooks';
-import { asyncResults, rank, syncResults, type Result } from './search';
+import { asyncResults, prettyUrl, rank, syncResults, type Result } from './search';
 import { cachedSuggestions, hideSuggestion, visibleSuggestions, webSuggestions } from './suggest';
 import { isLight, siteTint } from './tint';
 import { BUILTIN_ENGINES, engineUrl, matchEngine, type Engine } from '../shared/engines';
@@ -250,6 +250,7 @@ export function App(props: { initial: Snapshot }) {
   const removeResult = async (r: Result) => {
     if (!removable(r)) return;
     setResults((cur) => cur.filter((x) => x.key !== r.key));
+    input.current?.focus();
     if (r.kind === 'history') {
       await chrome.history.deleteUrl({ url: r.url! }).catch(() => {});
       hideSuggestion({ ...r, kind: 'nav' }); // the suggestion service may still offer the same page
@@ -265,17 +266,46 @@ export function App(props: { initial: Snapshot }) {
   const engines = useMemo(() => [...(snap.settings.engines ?? []), ...BUILTIN_ENGINES, ...autoEngines], [snap.settings.engines, autoEngines]);
   const candidate = !scope && query ? matchEngine(query, engines) : null;
 
+  // Ghost completion: the selected row's text, shown dimmer after what was typed.
+  // Arrow keys show it for any row; the top row shows it only when it continues the typed text.
+  const [arrowed, setArrowed] = useState(false);
+  const completion = (() => {
+    const r = results[sel];
+    if (!r || !query) return '';
+    const text = r.kind === 'search' ? '' : r.url && r.kind !== 'tab' ? prettyUrl(r.url) : r.title;
+    if (!text || text.toLowerCase() === query.toLowerCase()) return '';
+    if (text.toLowerCase().startsWith(query.toLowerCase())) return text;
+    return arrowed ? text : '';
+  })();
+  const ghostRest = completion.toLowerCase().startsWith(query.toLowerCase()) ? completion.slice(query.length) : completion ? `  →  ${completion}` : '';
+  const accept = () => {
+    if (!completion) return false;
+    setQuery(completion);
+    setArrowed(false);
+    return true;
+  };
+
   const onInputKey = (e: KeyboardEvent) => {
     const n = results.length;
     if (e.key === 'Tab') {
-      // Tab never moves focus out of the field: it only starts site search.
+      // Tab never moves focus out of the field: it starts site search ("youtube" + Tab)
+      // or accepts the suggested completion.
       e.preventDefault();
-      if (candidate && !e.shiftKey) {
+      if (e.shiftKey) return;
+      if (candidate && !arrowed) {
         setScope(candidate);
         setQuery('');
-      }
+      } else accept();
       return;
     }
+    const el = e.target as HTMLInputElement;
+    const atEnd = el.selectionStart === el.value.length && el.selectionEnd === el.value.length;
+    if (e.key === 'ArrowRight' && atEnd && completion) {
+      e.preventDefault();
+      accept();
+      return;
+    }
+    if (e.key === 'ArrowLeft') setArrowed(false); // drop the ghost, move the caret as usual
     if (e.key === 'Backspace' && scope && !query) {
       e.preventDefault();
       setScope(null);
@@ -283,9 +313,11 @@ export function App(props: { initial: Snapshot }) {
     }
     if (e.key === 'ArrowDown' || (e.ctrlKey && e.key === 'n')) {
       e.preventDefault();
+      setArrowed(true);
       setSel((s) => (n ? (s + 1) % n : 0));
     } else if (e.key === 'ArrowUp' || (e.ctrlKey && e.key === 'p')) {
       e.preventDefault();
+      setArrowed(true);
       setSel((s) => (n ? (s - 1 + n) % n : 0));
     } else if (e.key === 'Enter' && !e.isComposing) {
       e.preventDefault();
@@ -357,6 +389,10 @@ export function App(props: { initial: Snapshot }) {
               {scope.name}
             </button>
           )}
+          <div class={`bar-field ${scope ? 'scoped' : ''}`}>
+          {ghostRest && (
+            <div class="bar-ghost" aria-hidden="true"><span class="ghost-typed">{query}</span><span class="ghost-rest">{ghostRest}</span></div>
+          )}
           <input
             class={scope ? 'scoped' : ''}
             ref={input}
@@ -364,12 +400,14 @@ export function App(props: { initial: Snapshot }) {
             placeholder={scope ? `Искать на ${scope.name}` : 'Поиск, URL или команда'}
             autocomplete="off"
             spellcheck={false}
-            onInput={(e) => setQuery((e.target as HTMLInputElement).value)}
+            onInput={(e) => { setArrowed(false); setQuery((e.target as HTMLInputElement).value); }}
             onKeyDown={onInputKey}
           />
-          {candidate && (
+          </div>
+          {candidate && !(arrowed && completion) && (
             <span class="bar-hint"><kbd>Tab</kbd> {candidate.name}</span>
           )}
+          {arrowed && completion && <span class="bar-hint"><kbd>Tab</kbd> дополнить</span>}
           {!query && !scope && (
             <button class={`bar-btn ${edit ? 'on' : ''}`} title={edit ? 'Готово' : 'Изменить виджеты'} onClick={() => { setEdit(!edit); setPanel(null); }}>
               {edit ? 'Готово' : <IconGrid size={16} />}
@@ -398,7 +436,7 @@ export function App(props: { initial: Snapshot }) {
                   {r.subtitle && <span class="res-sub">{r.subtitle}</span>}
                 </span>
                 {removable(r) && (
-                  <button class="res-close" title="Убрать из подсказок (⇧⌫)" onClick={(e) => { e.stopPropagation(); removeResult(r); }}>
+                  <button class="res-close" title="Убрать из подсказок (⇧⌫)" onMouseDown={(e) => e.preventDefault()} onClick={(e) => { e.stopPropagation(); removeResult(r); }}>
                     <IconX size={12} />
                   </button>
                 )}
@@ -430,7 +468,7 @@ export function App(props: { initial: Snapshot }) {
         <div class="foot glass">
           {query || scope ? (
             <>
-              {candidate && <span><kbd>Tab</kbd> искать на {candidate.name}</span>}
+              {candidate && !(arrowed && completion) && <span><kbd>Tab</kbd> искать на {candidate.name}</span>}
               <span><kbd>↑</kbd><kbd>↓</kbd> выбор</span>
               <span><kbd>↵</kbd> {snap.settings.openInNewTab ? 'новая вкладка' : 'эта вкладка'}</span>
               <span><kbd>⇧</kbd><kbd>↵</kbd> {snap.settings.openInNewTab ? 'эта вкладка' : 'новая вкладка'}</span>

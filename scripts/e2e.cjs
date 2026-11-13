@@ -154,6 +154,22 @@ function mockCache() {
   await page.waitForTimeout(150);
   const afterRemove = await f.$$eval('.res-title', (els) => els.map((e) => e.textContent));
   console.log('× removes suggestion:', afterRemove.includes('youtube music') ? '❌' : '✓');
+  await page.keyboard.press('ArrowDown');
+  await page.keyboard.press('ArrowDown'); // past the "search the web" row to "youtube kids"
+  await page.waitForTimeout(100);
+  const ghost = await f.$eval('.ghost-rest', (e) => e.textContent).catch(() => null);
+  console.log('ghost completion:', JSON.stringify(ghost), ghost ? '✓' : '❌');
+  await page.screenshot({ path: `${OUT}/2d-ghost.png` });
+  await page.keyboard.press('ArrowRight');
+  await page.waitForTimeout(100);
+  const accepted = await f.$eval('.bar input', (e) => e.value);
+  console.log('→ accepts completion:', JSON.stringify(accepted), accepted !== 'yout' ? '✓' : '❌');
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(100);
+  await toggle();
+  await f.waitForSelector('.root.shown');
+  await page.keyboard.type('yout');
+  await page.waitForTimeout(400);
   await page.keyboard.press('Tab');
   await page.keyboard.type('lofi');
   await page.waitForTimeout(400);

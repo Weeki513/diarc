@@ -124,6 +124,11 @@ html.popup, html.popup body { width: 760px; height: 580px; overflow: hidden; }
 .bar input { flex: 1; height: 100%; border: 0; outline: 0; background: transparent; padding: 0 12px 0 54px; font-size: 19px; letter-spacing: -0.01em; }
 .bar input::placeholder { color: var(--text-3); }
 .bar input.scoped { padding-left: 10px; }
+.bar-field { position: relative; flex: 1; height: 100%; display: flex; min-width: 0; }
+.bar-ghost { position: absolute; inset: 0; display: flex; align-items: center; padding: 0 12px 0 54px; font-size: 19px; letter-spacing: -0.01em; white-space: pre; overflow: hidden; pointer-events: none; }
+.bar-field.scoped .bar-ghost { padding-left: 10px; }
+.ghost-typed { color: transparent; }
+.ghost-rest { color: var(--text-3); opacity: 0.85; text-overflow: ellipsis; overflow: hidden; }
 .bar-scope { flex: none; margin-left: 50px; height: 30px; padding: 0 12px; border-radius: 15px; font-size: 14px; font-weight: 600; background: var(--site, var(--accent)); color: #fff; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35), 0 1px 3px rgba(0, 0, 0, 0.15); }
 .bar.tinted .bar-scope { background: rgba(255, 255, 255, 0.24); color: inherit; }
 .bar.tinted.on-light .bar-scope { background: rgba(0, 0, 0, 0.1); }
