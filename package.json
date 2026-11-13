@@ -8,7 +8,7 @@
     "dev": "node scripts/build.mjs --watch",
     "build": "node scripts/build.mjs",
     "typecheck": "tsc --noEmit",
-    "icons": "node scripts/icons.mjs",
+    "icons": "python3 scripts/icons.py",
     "new-widget": "node scripts/new-widget.mjs",
     "zip": "node scripts/zip.mjs",
     "test:e2e": "node scripts/e2e.cjs",

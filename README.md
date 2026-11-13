@@ -1,4 +1,6 @@
-# Diarc
+<p align="center"><img src="assets/logo/diarc-512.png" width="128" alt="Diarc"></p>
+
+<h1 align="center">Diarc</h1>
 
 Командная строка в стиле Arc для браузера [Dia](https://www.diabrowser.com/). По `⌘T` поверх текущей страницы
 мгновенно появляется бар: поиск по вкладкам, истории и закладкам, команды для вкладок и плитки виджетов
