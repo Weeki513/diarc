@@ -66,7 +66,10 @@
 1. Скачайте `diarc-<версия>.zip` со страницы [Releases](https://github.com/Weeki513/diarc/releases/latest) и распакуйте.
 2. В Dia откройте `dia://extensions` и включите **Developer mode** (справа сверху).
 3. Нажмите **Load unpacked** и выберите распакованную папку (в ней лежит `manifest.json`).
-4. Откройте любую страницу и нажмите `⌃⇧Space`. Как сделать `⌘T`, написано ниже.
+4. Откройте любую страницу и нажмите `⌃⇧Space`.
+
+> **Для `⌘T` рекомендуем бесплатный [Karabiner-Elements](https://karabiner-elements.pqrs.org/).** Готовые правила лежат
+> в `karabiner/diarc.json`, как их включить, написано в разделе [«Сочетание клавиш»](#сочетание-клавиш).
 
 Не удаляйте папку после установки: Dia загружает расширение прямо из неё. Чтобы обновиться, замените содержимое папки
 новым релизом и нажмите ↻ у расширения.
@@ -85,7 +88,7 @@ npm run build
 ### Сочетание клавиш
 
 Расширения не могут занять `⌘T`, поэтому по умолчанию бар открывается по **`⌃⇧Space`** (поменять:
-`dia://extensions/shortcuts`). Чтобы был `⌘T` как в Arc, используйте [Karabiner-Elements](https://karabiner-elements.pqrs.org/):
+`dia://extensions/shortcuts`). Чтобы был `⌘T` как в Arc, используйте бесплатный [Karabiner-Elements](https://karabiner-elements.pqrs.org/):
 
 1. Скопируйте `karabiner/diarc.json` в `~/.config/karabiner/assets/complex_modifications/`.
 2. Karabiner → **Complex Modifications → Add predefined rule** → включите оба правила Diarc:
@@ -168,7 +171,14 @@ this extension. It's on GitHub now and coming to the Chrome Web Store soon.
 
 1. Download `diarc-<version>.zip` from [Releases](https://github.com/Weeki513/diarc/releases/latest) and unzip it.
 2. Open `dia://extensions`, turn on **Developer mode**, click **Load unpacked** and pick the unzipped folder.
-3. Press `⌃⇧Space` on any page. For `⌘T`, use the Karabiner rules in `karabiner/diarc.json` (see the Russian section above).
+3. Press `⌃⇧Space` on any page.
+
+> **For `⌘T`, we recommend the free [Karabiner-Elements](https://karabiner-elements.pqrs.org/).** Extensions can't take `⌘T`
+> themselves, so Karabiner remaps it while Dia is focused:
+>
+> 1. Copy `karabiner/diarc.json` to `~/.config/karabiner/assets/complex_modifications/`.
+> 2. Karabiner → **Complex Modifications → Add predefined rule** → enable both Diarc rules: `⌘T` → `⌃⇧Space` (opens the bar)
+>    and `⌘K` → `⌘T` (Dia's regular new tab).
 
 Google and TickTick widgets need your own OAuth clients: [docs/OAUTH.md](docs/OAUTH.md). Everything else works out of the box.
 Privacy: [docs/PRIVACY.md](docs/PRIVACY.md).
