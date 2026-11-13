@@ -122,6 +122,23 @@ export function App(props: { initial: Snapshot }) {
       };
     }
     if (MODE === 'tab') document.title = 'Diarc';
+    // Outside a page (Dia new tab, popup, window) the creatures live in the bar's own page,
+    // behind the glass. Loaded lazily so the in-page bar doesn't carry the engine.
+    if ((snap.settings.ambient?.show ?? 'bar') !== 'off') {
+      import('../ambient/engine').then(({ Ambient }) => {
+        const c = document.createElement('canvas');
+        c.className = 'ambient-bg';
+        document.querySelector('.root')?.prepend(c);
+        const amb = new Ambient(c);
+        amb.configure(snap.settings.ambient ?? {});
+        amb.start();
+        window.addEventListener('pointermove', (e) => amb.pointer(e.clientX, e.clientY), { passive: true });
+        window.addEventListener('click', (e) => (e.target as HTMLElement) === c || (e.target as HTMLElement).classList.contains('root') ? amb.scatter(e.clientX, e.clientY) : 0);
+        chrome.storage.onChanged.addListener((ch, area) => {
+          if (area === 'local' && ch.settings) amb.configure((ch.settings.newValue as { ambient?: object })?.ambient ?? {});
+        });
+      });
+    }
     if (MODE === 'popup' || MODE === 'tab') bg({ type: 'widget:refresh' }).catch(() => {});
     if (MODE === 'window') {
       bg({ type: 'widget:refresh' }).catch(() => {});

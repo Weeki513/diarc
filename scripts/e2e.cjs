@@ -233,6 +233,7 @@ function mockCache() {
   await win.setViewportSize({ width: 780, height: 620 });
   await win.goto(`chrome-extension://${extId}/overlay.html?mode=page`);
   await win.waitForSelector('.tile');
+  await win.waitForTimeout(1500);
   await win.screenshot({ path: `${OUT}/7-window.png` });
 
   const errors = [];

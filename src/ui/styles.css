@@ -90,6 +90,7 @@ code { font: 12px ui-monospace, SFMono-Regular, Menlo, monospace; background: va
     radial-gradient(60% 50% at 50% 95%, #134238 0, transparent 70%), #121216;
 }
 .root:not(.mode-frame) .glass { -webkit-backdrop-filter: blur(22px) saturate(1.7); backdrop-filter: blur(22px) saturate(1.7); }
+.ambient-bg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
 html.popup, html.popup body { width: 760px; height: 580px; overflow: hidden; }
 .root.mode-window .panel, .root.mode-page .panel, .root.mode-popup .panel { position: absolute; inset: 12px; }
 
