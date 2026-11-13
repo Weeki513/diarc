@@ -11,6 +11,7 @@ import { BUILTIN_ENGINES, engineUrl, matchEngine, type Engine } from '../shared/
 import { Grid } from './Grid';
 import { startGlassReporter, startLight } from './glass';
 import { Gallery, TileSettings } from './Panels';
+import { ActionMenu } from './Actions';
 import { IconBolt, IconClock, IconGlobe, IconGrid, IconSearch, IconStar, IconTab, IconX } from './icons';
 
 type Panel = null | { type: 'gallery' } | { type: 'settings'; id: string };
@@ -40,6 +41,7 @@ export function App(props: { initial: Snapshot }) {
   const [edit, setEdit] = useState(false);
   const [panel, setPanel] = useState<Panel>(null);
   const [toast, setToast] = useState<string | null>(null);
+  const [menu, setMenu] = useState(false);
   const input = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const searchToken = useRef(0);
@@ -67,6 +69,7 @@ export function App(props: { initial: Snapshot }) {
     setSel(0);
     setEdit(false);
     setPanel(null);
+    setMenu(false);
   }, []);
 
   // ---- open / close lifecycle ----
@@ -333,13 +336,27 @@ export function App(props: { initial: Snapshot }) {
 
   // Global keys: Escape steps back; typing anywhere focuses the search field.
   // State is read through a ref so fast repeated presses never see a stale closure.
-  const live = useRef({ panel, edit, scope });
-  live.current = { panel, edit, scope };
+  const live = useRef({ panel, edit, scope, menu });
+  live.current = { panel, edit, scope, menu };
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement;
       const inField = target !== input.current && /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName);
       const cur = live.current;
+      if ((e.metaKey || e.ctrlKey) && !e.shiftKey && !e.altKey && e.key.toLowerCase() === 'k') {
+        // ⌘K: Raycast-style action menu.
+        e.preventDefault();
+        live.current = { ...cur, menu: !cur.menu };
+        setMenu(!cur.menu);
+        if (cur.menu) input.current?.focus();
+        return;
+      }
+      if (e.metaKey && e.key === ',') {
+        e.preventDefault();
+        closeBar();
+        chrome.runtime.openOptionsPage();
+        return;
+      }
       if (e.key === 'Tab' && target !== input.current && !target.closest?.('.sheet')) {
         // Keep keyboard focus in the search field instead of walking through buttons.
         e.preventDefault();
@@ -348,7 +365,11 @@ export function App(props: { initial: Snapshot }) {
       }
       if (e.key === 'Escape') {
         e.preventDefault();
-        if (inField) {
+        if (cur.menu) {
+          live.current = { ...cur, menu: false };
+          setMenu(false);
+          input.current?.focus();
+        } else if (inField) {
           target.blur();
           input.current?.focus();
         } else if (cur.scope) {
@@ -364,7 +385,7 @@ export function App(props: { initial: Snapshot }) {
         } else closeBar();
         return;
       }
-      if (!inField && target !== input.current && e.key.length === 1 && !e.metaKey && !e.ctrlKey && !cur.panel) input.current?.focus();
+      if (!inField && target !== input.current && e.key.length === 1 && !e.metaKey && !e.ctrlKey && !cur.panel && !cur.menu) input.current?.focus();
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -469,10 +490,10 @@ export function App(props: { initial: Snapshot }) {
           {query || scope ? (
             <>
               {candidate && !(arrowed && completion) && <span><kbd>Tab</kbd> искать на {candidate.name}</span>}
-              <span><kbd>↑</kbd><kbd>↓</kbd> выбор</span>
+              {!candidate && <span><kbd>↑</kbd><kbd>↓</kbd> выбор</span>}
               <span><kbd>↵</kbd> {snap.settings.openInNewTab ? 'новая вкладка' : 'эта вкладка'}</span>
               <span><kbd>⇧</kbd><kbd>↵</kbd> {snap.settings.openInNewTab ? 'эта вкладка' : 'новая вкладка'}</span>
-              <span><kbd>⌘</kbd><kbd>⌫</kbd> закрыть вкладку</span>
+              {results[sel]?.kind === 'tab' && <span><kbd>⌘</kbd><kbd>⌫</kbd> закрыть вкладку</span>}
             </>
           ) : (
             <>
@@ -481,8 +502,27 @@ export function App(props: { initial: Snapshot }) {
               <span>{edit ? 'Перетаскивайте плитки, меняйте размер' : 'Долгое нажатие на плитку — редактирование'}</span>
             </>
           )}
+          <button class={`foot-actions ${menu ? 'on' : ''}`} onMouseDown={(e) => e.preventDefault()} onClick={() => { setMenu(!menu); if (menu) input.current?.focus(); }}>
+            Действия <kbd>⌘</kbd><kbd>K</kbd>
+          </button>
           <span class="foot-right"><kbd>esc</kbd></span>
         </div>
+        {menu && (
+          <ActionMenu
+            settings={snap.settings}
+            result={query || scope ? results[sel] : undefined}
+            query={query}
+            newTabDefault={snap.settings.openInNewTab}
+            onClose={() => { setMenu(false); input.current?.focus(); }}
+            toast={showToast}
+            editTiles={() => { setQuery(''); setScope(null); setPanel(null); setEdit(true); }}
+            addTile={() => { setQuery(''); setScope(null); setEdit(true); setPanel({ type: 'gallery' }); }}
+            refreshWidgets={refreshWidgets}
+            removeResult={removeResult}
+            closeTabResult={closeTabResult}
+            activate={activate}
+          />
+        )}
         {toast && <div class="toast">{toast}</div>}
       </div>
     </div>

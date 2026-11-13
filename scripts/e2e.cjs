@@ -180,6 +180,36 @@ function mockCache() {
   await page.keyboard.press('Backspace');
   const scopeGone = await f.$('.bar-scope');
   console.log('backspace leaves scope:', scopeGone ? '❌' : '✓');
+  // ⌘K action menu: context actions for the selected result, then toggles.
+  await page.keyboard.type('yout');
+  await page.waitForTimeout(300);
+  await page.keyboard.press('Control+K');
+  await f.waitForSelector('.actions', { timeout: 2000 }).catch(() => {});
+  const ctxActs = await f.$$eval('.act-title', (els) => els.map((e) => e.textContent)).catch(() => []);
+  console.log('⌘K menu with result actions:', ctxActs.slice(0, 4).join(' | '), ctxActs.includes('Скопировать ссылку') || ctxActs.includes('Убрать из подсказок') ? '✓' : '❌');
+  await page.keyboard.type('сущ');
+  await page.waitForTimeout(150);
+  await page.screenshot({ path: `${OUT}/2e-actions.png` });
+  const before = await f.$eval('.act.sel .act-title', (e) => e.textContent).catch(() => '');
+  await page.keyboard.press('Enter');
+  await page.waitForTimeout(300);
+  const after = await f.$eval('.act-title', (e) => e.textContent).catch(() => '');
+  console.log('⌘K toggles creatures:', before, '→', after, before !== after && after.includes('Включить') ? '✓' : '❌');
+  await page.keyboard.press('Enter'); // back on
+  await page.waitForTimeout(200);
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(100);
+  const menuGone = !(await f.$('.actions'));
+  console.log('esc closes menu, bar stays:', menuGone && !!(await f.$('.root.shown')) ? '✓' : '❌');
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(100);
+  await toggle();
+  await f.waitForSelector('.root.shown');
+  await page.keyboard.press('Control+K');
+  await page.keyboard.type('стекло');
+  await page.waitForTimeout(200);
+  await page.screenshot({ path: `${OUT}/2f-actions-home.png` });
+  await page.keyboard.press('Escape');
   await page.keyboard.press('Escape');
   await page.waitForTimeout(100);
   await toggle();

@@ -316,3 +316,24 @@ html.popup, html.popup body { width: 760px; height: 580px; overflow: hidden; }
   .tile[style*='span 4'] { grid-column: span 2 !important; }
   .foot span:not(.foot-right):nth-child(n + 3) { display: none; }
 }
+
+/* ⌘K action menu */
+.panel { position: relative; }
+.foot-actions { margin-left: auto; display: flex; align-items: center; gap: 4px; border: 0; background: none; color: var(--text-2); font: inherit; font-size: 11.5px; padding: 3px 4px 3px 8px; border-radius: 9px; cursor: pointer; }
+.foot-actions:hover, .foot-actions.on { background: var(--hover); color: var(--text); }
+.foot-actions kbd { margin: 0; }
+.foot-actions + .foot-right { margin-left: 4px; }
+.actions { position: absolute; right: 0; bottom: 44px; z-index: 30; width: 340px; max-height: min(430px, calc(100% - 60px)); display: flex; flex-direction: column; border-radius: 20px; background: linear-gradient(180deg, var(--sheen), transparent 40%), var(--glass-strong); animation: act-in 0.14s cubic-bezier(.2, .9, .3, 1.2); transform-origin: 100% 100%; }
+@keyframes act-in { from { opacity: 0; transform: translateY(6px) scale(.97); } }
+.act-list { flex: 1; overflow-y: auto; padding: 6px; }
+.act-sec { padding: 8px 10px 4px; font-size: 10.5px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--text-3); }
+.act { display: flex; align-items: center; gap: 10px; height: 34px; padding: 0 10px; border-radius: 11px; font-size: 13px; cursor: default; }
+.act.sel { background: var(--sel); }
+.act-icon { width: 18px; text-align: center; font-size: 13px; flex: none; }
+.act-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.act-check { color: var(--accent); font-weight: 600; }
+.act-hint { color: var(--text-3); font-size: 11.5px; flex: none; }
+.act.on .act-title { font-weight: 500; }
+.act-empty { padding: 18px; text-align: center; color: var(--text-3); font-size: 13px; }
+.act-input { flex: none; border: 0; border-top: 1px solid var(--line); background: transparent; color: var(--text); font: inherit; font-size: 13px; padding: 11px 14px; outline: none; border-radius: 0 0 20px 20px; }
+.act-input::placeholder { color: var(--text-3); }

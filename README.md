@@ -44,6 +44,9 @@ So when I had a couple of free hours, I built this extension. It's on GitHub now
 - **Creatures**: pixel ASCII creatures (mantas, fireflies, swallows, turtles, leaves) drift over pages under the bar's
   glass or in an "Aquarium" tab. Everything is configurable, and you can add your own in one file:
   **[docs/CREATURES.md](docs/CREATURES.md)**.
+- **Action menu** on `⌘K`, like in Raycast: toggle creatures and pick a species, switch glass, theme and suggestions,
+  edit tiles, sign in or out of Google and TickTick, open settings; plus actions for the selected result (copy link,
+  open in a new window, remove from history, close or pin a tab).
 - **Commands**: close, duplicate or pin a tab, close duplicates, move to a new window, copy the link and more.
 - **Quick capture**: `t buy milk tomorrow` creates a TickTick task, `e call friday 3pm 30 min` creates a Google Calendar
   event. Dates are understood in English and Russian.
@@ -99,7 +102,7 @@ To get `⌘T` like in Arc, use the free [Karabiner-Elements](https://karabiner-e
 1. Copy `karabiner/diarc.json` to `~/.config/karabiner/assets/complex_modifications/`.
 2. Karabiner → **Complex Modifications → Add predefined rule** → enable both Diarc rules:
    - `⌘T` → `⌃⇧Space` (opens the bar),
-   - `⌘K` → `⌘T` (Dia's regular new tab).
+   - `⌥⌘T` → `⌘T` (Dia's regular new tab). `⌘K` stays free for the action menu inside the bar.
 
 The rules only apply while Dia is focused. If nothing happens, check Dia's bundle id in Karabiner-EventViewer
 (Frontmost Application tab) and fix `bundle_identifiers` in the file (currently `company.thebrowser.dia`).
