@@ -6,7 +6,7 @@
 мгновенно появляется бар: поиск по вкладкам, истории и закладкам, команды для вкладок и плитки виджетов
 (Google Календарь, Gmail, TickTick и свои).
 
-![Diarc](docs/screenshots/home.png)
+https://github.com/user-attachments/assets/995e0249-106c-4183-a8a7-9e00c5d6ec33
 
 **[English](README.md)** · [Скачать последний релиз](https://github.com/Weeki513/diarc/releases/latest)
 
