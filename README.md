@@ -6,6 +6,27 @@
 
 ![Diarc](docs/screenshots/home.png)
 
+**[English below](#in-english)** · [Скачать последний релиз](https://github.com/Weeki513/diarc/releases/latest)
+
+## Зачем
+
+Мне было неудобно, что при открытии поиска в Dia открывается новая вкладка. Хотелось вернуть простоту, которая была в Arc:
+там по `⌘T` открывалась не новая вкладка, а строка ввода прямо поверх текущей страницы. Я долго ждал чего-то подобного
+от The Browser Company, но устал ждать и сделал сам.
+
+Заодно хотелось больше свободы и функциональности. Так появились виджеты и простой способ добавлять свои.
+И немного красоты и самовыражения. Так появились ASCII-анимации.
+
+Поэтому, когда выдалась пара свободных часов, я сделал это расширение. Сейчас оно доступно на GitHub, а скоро появится
+в [Chrome Web Store](https://chromewebstore.google.com/category/extensions).
+
+<p>
+  <img src="docs/screenshots/search.png" width="49%" alt="Поиск с подсказками">
+  <img src="docs/screenshots/tab-search.png" width="49%" alt="Tab-поиск по сайту">
+  <img src="docs/screenshots/creatures.png" width="49%" alt="Существа под стеклом">
+  <img src="docs/screenshots/edit.png" width="49%" alt="Редактирование плиток">
+</p>
+
 ## Что умеет
 
 - **Поиск** как в адресной строке: подсказки из интернета (Google или DuckDuckGo, можно выключить), сайты, открытые
@@ -38,7 +59,19 @@
 - Весь UI — Preact, около 25 КБ gzip.
 - Страница не видит ни ваших писем и событий, ни нажатий клавиш в баре: всё отрисовывается внутри extension-фрейма.
 
-## Установка (для разработки)
+## Установка
+
+Пока расширения нет в Chrome Web Store, его можно поставить из релиза:
+
+1. Скачайте `diarc-<версия>.zip` со страницы [Releases](https://github.com/Weeki513/diarc/releases/latest) и распакуйте.
+2. В Dia откройте `dia://extensions` и включите **Developer mode** (справа сверху).
+3. Нажмите **Load unpacked** и выберите распакованную папку (в ней лежит `manifest.json`).
+4. Откройте любую страницу и нажмите `⌃⇧Space`. Как сделать `⌘T`, написано ниже.
+
+Не удаляйте папку после установки: Dia загружает расширение прямо из неё. Чтобы обновиться, замените содержимое папки
+новым релизом и нажмите ↻ у расширения.
+
+### Из исходников
 
 ```bash
 git clone https://github.com/Weeki513/diarc && cd diarc
@@ -100,6 +133,45 @@ scripts/        сборка, генерация иконок, шаблон ви
 ```
 
 `npm run typecheck` проверяет типы, `npm run test:e2e` (нужен Playwright) прогоняет сценарий в Chromium и сохраняет скриншоты.
+
+## In English
+
+**Diarc** brings Arc's command bar back to [Dia](https://www.diabrowser.com/): press `⌘T` and a search bar appears on top of
+the page you're on, instead of a new tab.
+
+### Why
+
+The thing that bugged me in Dia was that opening search always opened a new tab. I wanted the simplicity Arc had back:
+`⌘T` there didn't open a new tab, it opened an input right over the current page. I waited a long time for something like
+this from The Browser Company, got tired of waiting and built it myself.
+
+I also wanted more freedom and functionality, which is where widgets and the easy way to add your own came from. And a bit
+of beauty and self-expression, which is where the ASCII animations came from. So when I had a couple of free hours, I built
+this extension. It's on GitHub now and coming to the Chrome Web Store soon.
+
+### Features
+
+- Omnibox-style search: web suggestions (Google or DuckDuckGo, can be turned off), open tabs, bookmarks and history in one list.
+  The selected suggestion is ghost-completed in the input, `Tab` or `→` accepts it.
+- Arc-style site search: type `youtube`, press `Tab`, and the query goes to YouTube. ~30 sites built in, custom ones in settings,
+  OpenSearch sites you visit are picked up automatically.
+- The search pill takes on the color of the site you're about to open.
+- Liquid glass: the pill, tiles and footer are separate pieces of glass that refract the page at their edges, with one light
+  that follows the cursor and scroll. Tunable with sliders and a live preview.
+- iOS-style widget tiles: Google Calendar, TickTick, Gmail, quick links, weather, and your own (one file each, see
+  [docs/WIDGETS.md](docs/WIDGETS.md)).
+- ASCII creatures (mantas, fireflies, swallows, turtles, leaves) drifting over pages under the glass or in an "Aquarium" tab.
+  Add your own in one file: [docs/CREATURES.md](docs/CREATURES.md).
+- Tab commands, quick task and event creation (`t buy milk tomorrow`, `e call friday 3pm 30 min`).
+
+### Install
+
+1. Download `diarc-<version>.zip` from [Releases](https://github.com/Weeki513/diarc/releases/latest) and unzip it.
+2. Open `dia://extensions`, turn on **Developer mode**, click **Load unpacked** and pick the unzipped folder.
+3. Press `⌃⇧Space` on any page. For `⌘T`, use the Karabiner rules in `karabiner/diarc.json` (see the Russian section above).
+
+Google and TickTick widgets need your own OAuth clients: [docs/OAUTH.md](docs/OAUTH.md). Everything else works out of the box.
+Privacy: [docs/PRIVACY.md](docs/PRIVACY.md).
 
 ## Лицензия
 
