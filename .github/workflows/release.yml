@@ -1,0 +1,49 @@
+# Publishes a GitHub release whenever the version in package.json changes on main.
+# The release gets diarc-<version>.zip (built with `npm run zip`) and the matching section of CHANGELOG.md.
+# If a release for that version already exists, nothing happens.
+name: Release
+
+on:
+  push:
+    branches: [main]
+    paths: [package.json, .github/workflows/release.yml]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Read version
+        id: v
+        run: echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+      - name: Skip if the release exists
+        id: exists
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "v${{ steps.v.outputs.version }}" >/dev/null 2>&1; then echo "yes=1" >> "$GITHUB_OUTPUT"; fi
+      - name: Build
+        if: steps.exists.outputs.yes != '1'
+        run: |
+          npm ci
+          npm run typecheck
+          npm run zip
+          mv diarc.zip "diarc-${{ steps.v.outputs.version }}.zip"
+      - name: Release notes
+        if: steps.exists.outputs.yes != '1'
+        run: awk -v v="## ${{ steps.v.outputs.version }}" '$0==v{on=1;next} /^## /{if(on)exit} on' CHANGELOG.md > notes.md
+      - name: Publish
+        if: steps.exists.outputs.yes != '1'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "v${{ steps.v.outputs.version }}" "diarc-${{ steps.v.outputs.version }}.zip" \
+            --title "Diarc ${{ steps.v.outputs.version }}" --notes-file notes.md --target "$GITHUB_SHA"
