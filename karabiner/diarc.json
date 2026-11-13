@@ -6,70 +6,20 @@
       "manipulators": [
         {
           "type": "basic",
-          "from": {
-            "key_code": "t",
-            "modifiers": {
-              "mandatory": [
-                "command"
-              ],
-              "optional": [
-                "caps_lock"
-              ]
-            }
-          },
-          "to": [
-            {
-              "key_code": "spacebar",
-              "modifiers": [
-                "left_control",
-                "left_shift"
-              ]
-            }
-          ],
-          "conditions": [
-            {
-              "type": "frontmost_application_if",
-              "bundle_identifiers": [
-                "^company\\.thebrowser\\.dia$"
-              ]
-            }
-          ]
+          "from": { "key_code": "t", "modifiers": { "mandatory": ["command"], "optional": ["caps_lock"] } },
+          "to": [{ "key_code": "spacebar", "modifiers": ["left_control", "left_shift"] }],
+          "conditions": [{ "type": "frontmost_application_if", "bundle_identifiers": ["^company\\.thebrowser\\.dia$"] }]
         }
       ]
     },
     {
-      "description": "Dia: ⌥⌘T opens a regular new tab (sends ⌘T)",
+      "description": "Dia: ⌘K opens a regular new tab (sends ⌘T)",
       "manipulators": [
         {
           "type": "basic",
-          "from": {
-            "key_code": "t",
-            "modifiers": {
-              "mandatory": [
-                "command",
-                "option"
-              ],
-              "optional": [
-                "caps_lock"
-              ]
-            }
-          },
-          "to": [
-            {
-              "key_code": "t",
-              "modifiers": [
-                "left_command"
-              ]
-            }
-          ],
-          "conditions": [
-            {
-              "type": "frontmost_application_if",
-              "bundle_identifiers": [
-                "^company\\.thebrowser\\.dia$"
-              ]
-            }
-          ]
+          "from": { "key_code": "k", "modifiers": { "mandatory": ["command"], "optional": ["caps_lock"] } },
+          "to": [{ "key_code": "t", "modifiers": ["left_command"] }],
+          "conditions": [{ "type": "frontmost_application_if", "bundle_identifiers": ["^company\\.thebrowser\\.dia$"] }]
         }
       ]
     }

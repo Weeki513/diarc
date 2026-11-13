@@ -1,5 +1,5 @@
 /**
- * ⌘K action menu (like Raycast): a small glass popover with searchable actions.
+ * ⌘J action menu (like Raycast): a small glass popover with searchable actions.
  * Context actions for the selected result come first, then quick toggles (creatures, glass,
  * theme, suggestions), then Diarc itself (settings, Aquarium, tiles, accounts).
  */
@@ -154,7 +154,7 @@ export function ActionMenu(p: Props) {
     if (e.key === 'ArrowDown' || (e.ctrlKey && e.key === 'n')) { e.preventDefault(); setSel((x) => (n ? (x + 1) % n : 0)); }
     else if (e.key === 'ArrowUp' || (e.ctrlKey && e.key === 'p')) { e.preventDefault(); setSel((x) => (n ? (x - 1 + n) % n : 0)); }
     else if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); run(shown[sel]); }
-    else if (e.key === 'Escape' || ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k')) { e.preventDefault(); e.stopPropagation(); p.onClose(); }
+    else if (e.key === 'Escape' || ((e.metaKey || e.ctrlKey) && e.code === 'KeyJ')) { e.preventDefault(); e.stopPropagation(); p.onClose(); }
     else if (e.key === 'Backspace' && !q) { e.preventDefault(); p.onClose(); }
     else if (e.key === 'Tab') e.preventDefault();
   };

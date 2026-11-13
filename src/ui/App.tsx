@@ -343,8 +343,8 @@ export function App(props: { initial: Snapshot }) {
       const target = e.target as HTMLElement;
       const inField = target !== input.current && /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName);
       const cur = live.current;
-      if ((e.metaKey || e.ctrlKey) && !e.shiftKey && !e.altKey && e.key.toLowerCase() === 'k') {
-        // ⌘K: Raycast-style action menu.
+      if ((e.metaKey || e.ctrlKey) && !e.shiftKey && !e.altKey && e.code === 'KeyJ') {
+        // ⌘J: Raycast-style action menu (by key position, so it works in any keyboard layout).
         e.preventDefault();
         live.current = { ...cur, menu: !cur.menu };
         setMenu(!cur.menu);
@@ -503,7 +503,7 @@ export function App(props: { initial: Snapshot }) {
             </>
           )}
           <button class={`foot-actions ${menu ? 'on' : ''}`} onMouseDown={(e) => e.preventDefault()} onClick={() => { setMenu(!menu); if (menu) input.current?.focus(); }}>
-            Действия <kbd>⌘</kbd><kbd>K</kbd>
+            Действия <kbd>⌘</kbd><kbd>J</kbd>
           </button>
           <span class="foot-right"><kbd>esc</kbd></span>
         </div>
